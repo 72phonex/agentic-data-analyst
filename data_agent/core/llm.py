@@ -32,18 +32,24 @@ class LLMClient:
 
         if self.backend == "gemini":
             self.api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
-            self.model_name = self.model_name or "gemini-1.5-flash"
+            self.model_name = self.model_name or os.getenv("LLM_MODEL", "gemini-2.5-flash")
+            self.genai_client = None
+            self.legacy_genai = None
             if not self.api_key:
                 print("Warning: GEMINI_API_KEY not set. Falling back to heuristic planner.")
                 self.backend = "heuristic"
             else:
                 try:
-                    import google.generativeai as genai
-                    genai.configure(api_key=self.api_key)
-                    self.genai = genai
+                    from google import genai
+                    self.genai_client = genai.Client(api_key=self.api_key)
                 except ImportError:
-                    print("google-generativeai not installed. Falling back to heuristic planner.")
-                    self.backend = "heuristic"
+                    try:
+                        import google.generativeai as genai_legacy
+                        genai_legacy.configure(api_key=self.api_key)
+                        self.legacy_genai = genai_legacy
+                    except ImportError:
+                        print("Neither google-genai nor google-generativeai installed. Falling back to heuristic planner.")
+                        self.backend = "heuristic"
 
         elif self.backend == "ollama":
             self.ollama_host = os.getenv("OLLAMA_HOST", "http://localhost:11434")
@@ -80,7 +86,6 @@ class LLMClient:
         """
         if self.backend == "gemini":
             try:
-                model = self.genai.GenerativeModel(self.model_name)
                 prompt = (
                     f"{SYSTEM_INSTRUCTIONS}\n\n"
                     f"{memories_text}\n\n"
@@ -89,9 +94,19 @@ class LLMClient:
                     f"Tool Computed Output: {json.dumps(tool_result, default=str)}\n\n"
                     f"Provide a clear, direct, and insightful response answering the user's question based strictly on the tool data."
                 )
-                res = model.generate_content(prompt)
-                if res and res.text:
-                    return res.text.strip()
+                if self.genai_client is not None:
+                    res = self.genai_client.models.generate_content(
+                        model=self.model_name,
+                        contents=prompt,
+                        config={"system_instruction": SYSTEM_INSTRUCTIONS}
+                    )
+                    if res and res.text:
+                        return res.text.strip()
+                elif self.legacy_genai is not None:
+                    model = self.legacy_genai.GenerativeModel(self.model_name)
+                    res = model.generate_content(prompt)
+                    if res and res.text:
+                        return res.text.strip()
             except Exception:
                 pass
 
@@ -358,16 +373,26 @@ class LLMClient:
 
     def _plan_with_gemini(self, prompt: str, cols: List[str], mem: str, err: Optional[str]) -> Dict[str, Any]:
         try:
-            model = self.genai.GenerativeModel(
-                self.model_name,
-                system_instruction=f"{SYSTEM_INSTRUCTIONS}\nAvailable Columns: {cols}\n{mem}\nTool Schemas:\n{json.dumps(TOOL_SCHEMAS)}"
-            )
+            sys_instruct = f"{SYSTEM_INSTRUCTIONS}\nAvailable Columns: {cols}\n{mem}\nTool Schemas:\n{json.dumps(TOOL_SCHEMAS)}"
             chat_prompt = f"Question: {prompt}\n" + (f"Previous Error: {err}\n" if err else "")
-            chat_prompt += "Respond with a JSON object: {\"name\": \"<tool_name>\", \"arguments\": {<args>}}"
-            res = model.generate_content(chat_prompt)
-            match = re.search(r"\{.*\}", res.text, re.DOTALL)
-            if match:
-                return json.loads(match.group(0))
+            chat_prompt += "Respond strictly with a JSON object: {\"name\": \"<tool_name>\", \"arguments\": {<args>}}"
+            text = ""
+            if self.genai_client is not None:
+                res = self.genai_client.models.generate_content(
+                    model=self.model_name,
+                    contents=chat_prompt,
+                    config={"system_instruction": sys_instruct, "response_mime_type": "application/json"}
+                )
+                text = res.text
+            elif self.legacy_genai is not None:
+                model = self.legacy_genai.GenerativeModel(self.model_name, system_instruction=sys_instruct)
+                res = model.generate_content(chat_prompt)
+                text = res.text
+
+            if text:
+                match = re.search(r"\{.*\}", text, re.DOTALL)
+                if match:
+                    return json.loads(match.group(0))
         except Exception:
             pass
         return self._plan_with_heuristic(prompt, cols, mem, err)

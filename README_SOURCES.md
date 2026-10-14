@@ -9,11 +9,19 @@ This document details all third-party libraries, execution engines, and optional
 - **DuckDB (`duckdb`)**:
   - Source: DuckDB Foundation (`https://duckdb.org`)
   - License: MIT
-  - Role: High-performance embedded in-process analytical SQL database. Used as the core query execution engine with strict query sanitization and blocklisting (blocking DROP, ALTER, INSERT, UPDATE, DELETE, multi-statement chaining, and filesystem access functions like `read_csv` and `read_parquet`).
+  - Role: High-performance embedded in-process analytical SQL database. Used as the core query execution engine with `enable_external_access=False` to strictly forbid file and network access from SQL.
+- **SQLGlot (`sqlglot`)**:
+  - Source: Toby Mao / SQLGlot Developers (`https://github.com/tobymao/sqlglot`)
+  - License: MIT
+  - Role: AST SQL parser used to validate that user queries are strictly single read-only `SELECT` or `WITH` statements, preventing token-evasion and chained attack vectors.
 - **Pandas (`pandas`)**:
   - Source: NumFOCUS / PyData (`https://pandas.pydata.org`)
   - License: BSD-3-Clause
   - Role: Tabular data representation, schema profiling, group aggregations, missing value analysis, and data preprocessing.
+- **OpenPyXL (`openpyxl`)**:
+  - Source: OpenPyXL Developers (`https://openpyxl.readthedocs.io`)
+  - License: MIT
+  - Role: Excel spreadsheet (`.xlsx`) parsing engine for `pandas.read_excel`.
 - **NumPy (`numpy`)**:
   - Source: NumPy Developers (`https://numpy.org`)
   - License: BSD-3-Clause
@@ -36,14 +44,10 @@ This document details all third-party libraries, execution engines, and optional
 
 ## 3. Visualization & User Interface
 
-- **Matplotlib (`matplotlib`)**:
-  - Source: Matplotlib Development Team (`https://matplotlib.org`)
-  - License: PSF / BSD-compatible
-  - Role: Headless rendering and export of high-resolution publication-quality PNG charts.
-- **Plotly (`plotly`)**:
-  - Source: Plotly Technologies Inc. (`https://plotly.com`)
-  - License: MIT
-  - Role: Interactive web-ready data visualisations.
+- **Matplotlib (`matplotlib`) & Seaborn (`seaborn`)**:
+  - Source: Matplotlib Development Team (`https://matplotlib.org`) / Michael Waskom (`https://seaborn.pydata.org`)
+  - License: BSD-compatible
+  - Role: Headless rendering and export of high-resolution statistical PNG charts (bar, scatter, line, histogram, box).
 - **Streamlit (`streamlit`)**:
   - Source: Snowflake Inc. (`https://streamlit.io`)
   - License: Apache 2.0
@@ -55,10 +59,11 @@ This document details all third-party libraries, execution engines, and optional
 
 - **Heuristic Rule-Based Planner (Default Fallback)**:
   - Custom deterministic regex-guided tool planner that requires zero external API keys and guarantees zero operational cost while correctly routing queries to appropriate tools.
-- **Google Generative AI SDK (`google-generativeai`)**:
-  - Source: Google LLC (`https://github.com/google-gemini/generative-ai-python`)
+- **Google GenAI SDK (`google-genai`)**:
+  - Source: Google LLC (`https://github.com/googleapis/python-genai`)
   - License: Apache 2.0
-  - Role: Optional backend supporting Gemini 1.5 Pro / Flash models via the `GEMINI_API_KEY` or `GOOGLE_API_KEY` environment variable.
-- **Ollama REST API (`requests`)**:
-  - Source: Ollama (`https://ollama.com`)
-  - Role: Optional local LLM backend (e.g., Llama 3, Qwen 2.5) running completely locally via standard HTTP endpoints (`http://localhost:11434/api/generate`).
+  - Role: Official modern Google GenAI SDK for Gemini 2.5 / 2.0 / 1.5 models via the `GEMINI_API_KEY` or `GOOGLE_API_KEY` environment variable.
+- **Requests (`requests`)**:
+  - Source: Python Software Foundation (`https://requests.readthedocs.io`)
+  - License: Apache 2.0
+  - Role: HTTP communication with local Ollama daemon (`http://localhost:11434/api/chat`).
