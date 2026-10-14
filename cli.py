@@ -36,7 +36,7 @@ def format_json_preview(data, max_len: int = 500) -> str:
 def run_cli():
     parser = argparse.ArgumentParser(description="Tabular Data Analysis Agent CLI")
     parser.add_argument("--data", "-d", type=str, default="data/sales_transactions.csv", help="Path to CSV or Excel dataset")
-    parser.add_argument("--memory-db", type=str, default="data_agent_memory.sqlite", help="Path to SQLite memory database")
+    parser.add_argument("--memory-db", type=str, default=os.getenv("MEMORY_DB_PATH", "data_agent_memory.sqlite"), help="Path to SQLite memory database")
     parser.add_argument("--backend", "-b", type=str, default="heuristic", choices=["heuristic", "gemini", "ollama"], help="LLM backend")
     args = parser.parse_args()
 
@@ -104,4 +104,4 @@ def run_cli():
 
 
 if __name__ == "__main__":
-    run_cli()
+    run_cli()

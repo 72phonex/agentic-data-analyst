@@ -31,7 +31,7 @@ st.set_page_config(
 
 # Initialize Session State
 if "memory_store" not in st.session_state:
-    st.session_state.memory_store = MemoryStore("data_agent_memory.sqlite")
+    st.session_state.memory_store = MemoryStore(os.getenv("MEMORY_DB_PATH", "data_agent_memory.sqlite"))
 
 if "backend" not in st.session_state:
     st.session_state.backend = os.getenv("LLM_BACKEND", "heuristic")
@@ -224,4 +224,4 @@ if prompt:
         "memories_used": res.get("memories_used"),
         "chart_path": chart_path,
         "chart_title": chart_title
-    })
+    })

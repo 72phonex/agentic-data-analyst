@@ -17,6 +17,7 @@ Rules:
 """
 
 from __future__ import annotations
+import os
 import sqlite3
 import re
 import json
@@ -25,11 +26,12 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 
-DEFAULT_DB_PATH = "data_agent_memory.sqlite"
+DEFAULT_DB_PATH = os.getenv("MEMORY_DB_PATH", "data_agent_memory.sqlite")
 
 
 class MemoryStore:
-    def __init__(self, db_path: str = DEFAULT_DB_PATH):
+    def __init__(self, db_path: Optional[str] = None):
+        db_path = db_path or os.getenv("MEMORY_DB_PATH", DEFAULT_DB_PATH)
         self.db_path = db_path
         self._shared_conn = None
         if db_path == ":memory:":

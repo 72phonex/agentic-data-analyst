@@ -23,3 +23,6 @@ charts/
 .env.*
 *.key
 *.pem
+*.sqlite
+*.sqlite-journal
+data_agent_memory.sqlite

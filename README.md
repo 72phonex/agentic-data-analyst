@@ -25,6 +25,13 @@ By default, `LLM_BACKEND` is set to `"heuristic"`.
    export OLLAMA_MODEL="qwen2.5:7b"
    ```
 
+### Memory Database Configuration
+The SQLite persistent memory database path is configurable via the `MEMORY_DB_PATH` environment variable:
+```bash
+export MEMORY_DB_PATH="data_agent_memory.sqlite"
+```
+Defaults to `data_agent_memory.sqlite`. Setting `MEMORY_DB_PATH` (or using the `--memory-db` CLI flag) enables running tests, demonstrations, and concurrent evaluations against isolated database files without stomping persistent state.
+
 ---
 
 ## Setup & Installation
