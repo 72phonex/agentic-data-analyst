@@ -217,37 +217,71 @@ class LLMClient:
         """Construct a targeted SQL query from user prompt and active memories."""
         p = prompt.lower()
 
-        # Check if memory defines a filter e.g. "active customers": status == 'Active' and cancelled_flag == 0
+        # Extract condition from memory dynamically if relevant to user prompt
         where_clause = ""
         if memories_text:
-            # Extract memory rule if active in query
-            if "active" in p and ("status" in memories_text.lower() or "cancelled" in memories_text.lower()):
-                where_clause = "WHERE status = 'Active' AND cancelled_flag = 0"
-            elif "high value" in p and ">" in memories_text:
-                where_clause = "WHERE total_amount > 500"
+            import re
+            for line in memories_text.strip().split("\n"):
+                line = line.strip()
+                if not line or not line.startswith("-"):
+                    continue
+                # Line format: - [category] key: value
+                m = re.match(r"^-\s*\[.*?\]\s*([^:]+):\s*(.+)$", line)
+                if m:
+                    mem_key = m.group(1).strip().lower()
+                    mem_val = m.group(2).strip()
+                    # Check if any significant token of mem_key is in the user prompt
+                    key_tokens = [tok for tok in re.split(r"\W+", mem_key) if len(tok) > 2]
+                    if any(tok in p for tok in key_tokens) or mem_key in p:
+                        # Translate condition to valid SQL
+                        cond = mem_val
+                        # Replace '==' with '='
+                        cond = re.sub(r"==\s*", "= ", cond)
+                        # Replace ' is ' with ' = '
+                        cond = re.sub(r"\bis\b", "=", cond, flags=re.IGNORECASE)
+                        # Normalize logical AND / OR
+                        cond = re.sub(r"\band\b", "AND", cond, flags=re.IGNORECASE)
+                        cond = re.sub(r"\bor\b", "OR", cond, flags=re.IGNORECASE)
+                        where_clause = f"WHERE {cond}"
+                        break
+
+        # Helper to find column mentioned in prompt
+        def find_mentioned_or_fallback(candidates, default_index=-1):
+            # 1. Exact or partial column name mentioned in prompt
+            for col in columns:
+                if col.lower() in p or col.lower().replace("_", " ") in p:
+                    return col
+            # 2. Check candidate keywords
+            for cand in candidates:
+                for col in columns:
+                    if cand in col.lower():
+                        return col
+            # 3. Default to column by index
+            return columns[default_index] if columns else "id"
 
         # Count queries
-        if any(w in p for w in ["how many", "count"]):
+        if any(w in p for w in ["how many", "count", "number of rows"]):
             return f"SELECT COUNT(*) AS total_count FROM df {where_clause}".strip()
 
         # Revenue / sum queries
-        if any(w in p for w in ["revenue", "total sales", "total amount"]):
-            sum_col = next((c for c in ["total_amount", "amount", "revenue", "price"] if c in columns), columns[-1])
-            return f"SELECT ROUND(SUM({sum_col}), 2) AS total_revenue, COUNT(*) AS count FROM df {where_clause}".strip()
+        if any(w in p for w in ["sum", "total", "revenue", "sales", "amount", "spending"]):
+            sum_col = find_mentioned_or_fallback(["total", "amount", "revenue", "sales", "price", "salary", "score", "cost"])
+            alias = "total_revenue" if any(w in p for w in ["revenue", "sales"]) else "total_sum"
+            return f"SELECT ROUND(SUM({sum_col}), 2) AS {alias}, COUNT(*) AS count FROM df {where_clause}".strip()
 
         # Average queries
-        if any(w in p for w in ["average", "mean"]):
-            avg_col = next((c for c in ["total_score", "final_score", "unit_price", "total_amount", "bmi"] if c in columns), columns[-1])
+        if any(w in p for w in ["average", "mean", "avg"]):
+            avg_col = find_mentioned_or_fallback(["score", "price", "salary", "amount", "age", "hours", "tenure", "rate", "cost", "value"])
             return f"SELECT ROUND(AVG({avg_col}), 2) AS average_value, COUNT(*) AS count FROM df {where_clause}".strip()
 
         # Highest / top queries
-        if any(w in p for w in ["highest", "top", "best", "max"]):
-            order_col = next((c for c in ["total_score", "final_score", "total_amount", "unit_price"] if c in columns), columns[-1])
+        if any(w in p for w in ["highest", "top", "best", "max", "greatest"]):
+            order_col = find_mentioned_or_fallback(["score", "amount", "salary", "price", "total", "value"])
             return f"SELECT * FROM df {where_clause} ORDER BY {order_col} DESC LIMIT 5".strip()
 
         # Lowest / bottom queries
-        if any(w in p for w in ["lowest", "worst", "min"]):
-            order_col = next((c for c in ["total_score", "final_score", "total_amount", "unit_price"] if c in columns), columns[-1])
+        if any(w in p for w in ["lowest", "worst", "min", "least"]):
+            order_col = find_mentioned_or_fallback(["score", "amount", "salary", "price", "total", "value"])
             return f"SELECT * FROM df {where_clause} ORDER BY {order_col} ASC LIMIT 5".strip()
 
         # Fallback query

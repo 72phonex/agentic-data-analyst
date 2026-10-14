@@ -31,10 +31,16 @@ DEFAULT_DB_PATH = "data_agent_memory.sqlite"
 class MemoryStore:
     def __init__(self, db_path: str = DEFAULT_DB_PATH):
         self.db_path = db_path
+        self._shared_conn = None
+        if db_path == ":memory:":
+            self._shared_conn = sqlite3.connect(":memory:")
+            self._shared_conn.row_factory = sqlite3.Row
         self._init_db()
         self.pending_proposals: Dict[str, Dict[str, Any]] = {}
 
     def _get_connection(self) -> sqlite3.Connection:
+        if self._shared_conn is not None:
+            return self._shared_conn
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
         return conn
