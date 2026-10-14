@@ -99,16 +99,16 @@ python scripts/test_unrelated_datasets.py
 
 | Test Suite / Verification Step | Target / Invariant | Real Output / Empirical Result | Status |
 |---|---|---|---|
-| **Pytest Test Suite** | 28 automated unit tests | 28 passed, 0 failed in 5.20s | **PASS** |
+| **Pytest Test Suite** | 41 automated unit tests | 41 passed, 0 failed in 5.77s | **PASS** |
 | **Total Revenue Verification** | Match demo claim | $92,477.23 (sum of `total_amount`) | **PASS** |
 | **Active Customer Revenue** | `status = 'Active'` & `cancelled_flag = 0` | $37,023.46 (across 91 rows) | **PASS** |
-| **DuckDB Security Sandbox** | Block DROP, INSERT, read_csv, PRAGMA, chained ';' | 7 of 7 injection attack vectors blocked | **PASS** |
+| **DuckDB Security Sandbox** | Block DROP, INSERT, read_csv, PRAGMA, chained ';', Cartesian DoS | 13 of 13 attack vectors blocked, 4/4 legitimate queries allowed | **PASS** |
 | **Memory Persistence** | Persist across process restart | 1 memory entry recovered from SQLite | **PASS** |
 | **Memory Audit Trail** | Record changes in `memory_history` | 1 audit change record logged with timestamp | **PASS** |
-| **Memory Relevance Filter** | No irrelevant memories injected | 0 memories injected for unrelated query | **PASS** |
+| **Memory Relevance Filter** | No irrelevant memories injected | 0 memories injected for unrelated query, 1 for related query | **PASS** |
 | **Memory Deletion** | `/forget <id>` command | Memory removed from SQLite (0 remaining) | **PASS** |
-| **Unrelated Dataset 1** | Employee Attrition (250 rows, 9 cols) | 5/5 questions answered successfully | **PASS** |
-| **Unrelated Dataset 2** | Real Estate Listings (250 rows, 9 cols) | 5/5 questions answered successfully | **PASS** |
+| **Unrelated Dataset 1** | Employee Attrition (250 rows, 9 cols) | 5/5 questions executed across analysis tools | **PASS** |
+| **Unrelated Dataset 2** | Real Estate Listings (250 rows, 9 cols) | 5/5 questions executed across analysis tools | **PASS** |
 
 ---
 
@@ -127,6 +127,10 @@ python scripts/test_unrelated_datasets.py
 
 ---
 
+
+### Datasets
+> **Note**: All datasets in this repository are synthetic, generated for testing and demonstration purposes.
+
 ## Repository Structure & File Map
 
 ```
@@ -143,11 +147,11 @@ agentic-data-analyst/
 │       ├── sandbox.py            # DuckDB SQL validator and execution sandbox
 │       └── tools.py              # 8 core data analysis tools
 ├── data/
-│   ├── sales_transactions.csv    # 200 retail sales records
-│   ├── student_performance.csv   # 500 academic performance records
-│   ├── health_survey.csv         # 600 wellness survey records
-│   ├── employee_attrition.csv    # 250 HR compensation and attrition records
-│   └── real_estate_listings.csv  # 250 property market records
+│   ├── sales_transactions.csv    # 200 retail sales records, 11 columns
+│   ├── student_performance.csv   # 150 academic performance records, 10 columns
+│   ├── health_survey.csv         # 180 wellness survey records, 10 columns
+│   ├── employee_attrition.csv    # 250 HR compensation records, 9 columns
+│   └── real_estate_listings.csv  # 250 property market records, 9 columns
 ├── scripts/
 │   ├── generate_datasets.py      # Demo dataset generation script
 │   ├── test_all_datasets.py      # Batch evaluation runner
@@ -191,6 +195,13 @@ agentic-data-analyst/
 
 ## Limitations
 <!-- TODO: write in my own words -->
+
+### Known Technical Limitations:
+- **SQLite Concurrency**: SQLite file-based locking restricts high-throughput concurrent writes in distributed multi-user deployments.
+- **DuckDB In-Memory Scope**: Queries execute in isolated, ephemeral in-memory DuckDB instances (`:memory:`) with external access disabled, preventing disk persistence or cross-session table creation.
+- **Single-Dataset-at-a-Time Scope**: The core orchestrator binds to one active DataFrame at a time; cross-file SQL joins across disparate CSVs require merging datasets prior to loading.
+- **Context Windowing**: Multi-turn chat sessions currently accumulate full history; very long sessions without periodic truncation could exceed LLM token context limits.
+- **Heuristic Fallback Scope**: When running without API keys or Ollama, the deterministic heuristic router relies on regex intent patterns and query templates; it does not perform general semantic reasoning or dynamic multi-step SQL synthesis.
 
 ---
 
