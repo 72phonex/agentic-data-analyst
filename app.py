@@ -1,227 +1,140 @@
-#!/usr/bin/env python3
-"""
-Interactive Web Application for the General-Purpose Tabular Data Analysis Agent.
-Built with Streamlit.
-"""
+import os, io, streamlit as st, pandas as pd
+from tools import clean_dataframe, describe_dataset
+from agent import ask_agent
+from memory import load_memories, save_memory, delete_memory, find_relevant_memories
+from llm import OLLAMA_MODEL
 
-from __future__ import annotations
-import sys
-import os
-import json
-from pathlib import Path
-import pandas as pd
-import streamlit as st
+st.set_page_config(page_title="Data Analyst Chatbot", page_icon="📊", layout="wide")
 
-# Add project root to path
-repo_root = str(Path(__file__).resolve().parent)
-if repo_root not in sys.path:
-    sys.path.insert(0, repo_root)
+@st.cache_data(show_spinner=False)
+def load_data(file_bytes: bytes, file_name: str) -> pd.DataFrame:
+    """Read uploaded file into a pandas DataFrame and clean numeric columns."""
+    if file_name.endswith(".tsv"):
+        df = pd.read_csv(io.BytesIO(file_bytes), sep="\t")
+    elif file_name.endswith((".xlsx", ".xls")):
+        df = pd.read_excel(io.BytesIO(file_bytes))
+    else:
+        df = pd.read_csv(io.BytesIO(file_bytes))
+    return clean_dataframe(df)
 
-from data_agent.core.agent import DataAnalysisAgent
-from data_agent.core.memory import MemoryStore
-from data_agent.core.llm import LLMClient
-from data_agent.core.data_loader import load_dataset
-
-
-st.set_page_config(
-    page_title="Tabular Data Analysis Agent",
-    page_icon="📊",
-    layout="wide"
-)
-
-# Initialize Session State
-if "memory_store" not in st.session_state:
-    st.session_state.memory_store = MemoryStore(os.getenv("MEMORY_DB_PATH", "data_agent_memory.sqlite"))
-
-if "backend" not in st.session_state:
-    st.session_state.backend = os.getenv("LLM_BACKEND", "heuristic")
-
-if "agent" not in st.session_state:
-    llm = LLMClient(backend=st.session_state.backend)
-    st.session_state.agent = DataAnalysisAgent(
-        memory_store=st.session_state.memory_store,
-        llm_client=llm
-    )
-
+# Initialize reload-safe session state
 if "messages" not in st.session_state:
     st.session_state.messages = []
+if "pending_memory" not in st.session_state:
+    st.session_state.pending_memory = None
 
-if "current_df" not in st.session_state:
-    st.session_state.current_df = None
-    st.session_state.filename = None
-
-
-# ==============================================================================
-# SIDEBAR: DATA UPLOAD & MEMORY MANAGER
-# ==============================================================================
-
+# Sidebar: Configuration, upload, summary, and memory
 with st.sidebar:
-    st.title("⚙️ Control Panel")
+    st.title("⚙️ Controls")
+    model_name = os.environ.get("OLLAMA_MODEL", OLLAMA_MODEL)
+    st.caption(f"Active Model: **{model_name}**")
 
-    # 1. Dataset Upload
-    st.subheader("📁 Upload Dataset")
-    uploaded_file = st.file_uploader("Upload CSV or Excel", type=["csv", "xlsx", "xls", "tsv"])
+    uploaded_file = st.file_uploader("Upload dataset", type=["csv", "tsv", "xlsx", "xls"])
+    
+    # Optional sample data loader for quick student demos
+    sample_choice = st.selectbox("Or try synthetic sample dataset:", ["None", "sales_transactions.csv", "student_performance.csv", "health_survey.csv"])
+    
+    df = None
+    if uploaded_file:
+        df = load_data(uploaded_file.getvalue(), uploaded_file.name)
+        st.success(f"Loaded `{uploaded_file.name}`")
+    elif sample_choice != "None":
+        sample_path = os.path.join("sample_data", sample_choice)
+        if os.path.exists(sample_path):
+            with open(sample_path, "rb") as f:
+                df = load_data(f.read(), sample_choice)
+            st.info(f"Loaded synthetic demo `{sample_choice}`")
 
-    # Or pick a demo dataset
-    demo_choice = st.selectbox(
-        "Or choose a demo dataset:",
-        ["None", "data/sales_transactions.csv", "data/student_performance.csv", "data/health_survey.csv"]
-    )
-
-    if uploaded_file is not None:
-        if st.session_state.filename != uploaded_file.name:
-            df, meta = load_dataset(uploaded_file)
-            st.session_state.current_df = df
-            st.session_state.filename = uploaded_file.name
-            st.session_state.agent.set_dataset(df, uploaded_file.name)
-            st.success(f"Loaded: `{uploaded_file.name}` ({len(df):,} rows)")
-    elif demo_choice != "None" and os.path.exists(demo_choice):
-        if st.session_state.filename != demo_choice:
-            df, meta = load_dataset(demo_choice)
-            st.session_state.current_df = df
-            st.session_state.filename = demo_choice
-            st.session_state.agent.set_dataset(df, demo_choice)
-            st.success(f"Loaded: `{os.path.basename(demo_choice)}` ({len(df):,} rows)")
-
-    if st.session_state.current_df is not None:
-        df = st.session_state.current_df
-        st.write(f"**Shape**: `{df.shape[0]:,} rows × {df.shape[1]} cols`")
-        with st.expander("🔍 Column Details", expanded=False):
+    if df is not None:
+        st.subheader("📋 Dataset Overview")
+        st.write(f"**Rows:** {len(df)} | **Columns:** {len(df.columns)}")
+        with st.expander("View Column Names"):
             st.write(list(df.columns))
 
-    st.markdown("---")
-
-    # 2. LLM Backend Selector
-    st.subheader("🧠 LLM Configuration")
-    backend_opt = st.selectbox(
-        "Model Backend",
-        ["heuristic", "gemini", "ollama"],
-        index=["heuristic", "gemini", "ollama"].index(st.session_state.backend)
-    )
-    if backend_opt != st.session_state.backend:
-        st.session_state.backend = backend_opt
-        st.session_state.agent.llm = LLMClient(backend=backend_opt)
-        st.info(f"Switched backend to: {backend_opt.upper()}")
-
-    backend_info = st.session_state.agent.llm.get_backend_info()
-    st.caption(f"**Status**: {backend_info['description']}")
-    if backend_info["is_heuristic"]:
-        st.warning("⚠️ Running in heuristic mode. Only simple canned questions will work. To use the full agent, set GEMINI_API_KEY or start Ollama.")
-
-    st.markdown("---")
-
-    # 3. Persistent Memory Inspector
-    st.subheader("💾 Persistent Memory Store")
-    st.caption("Curated domain facts, metric definitions, and preferences stored in SQLite.")
-
-    memories = st.session_state.memory_store.list_memories()
-    if memories:
-        for m in memories:
-            with st.container():
-                st.markdown(f"**#{m['id']} [{m['category']}] `{m['key']}`**")
-                st.code(m['value'], language="sql")
-                col_del, col_date = st.columns([1, 2])
-                with col_del:
-                    if st.button("Forget", key=f"del_{m['id']}", type="secondary"):
-                        st.session_state.memory_store.delete_memory(m['id'])
-                        st.rerun()
-                with col_date:
-                    st.caption(f"Updated: {m['updated_at']}")
-                st.divider()
-    else:
-        st.write("No memories stored yet.")
-
-    # Manual Add Form
-    with st.expander("➕ Add Memory Manually", expanded=False):
-        with st.form("manual_add_mem"):
-            cat = st.selectbox("Category", ["metric_definition", "column_meaning", "filter", "preference", "user_correction"])
-            k = st.text_input("Key (e.g. active customers)")
-            v = st.text_input("Value (e.g. status == 'Active' and cancelled_flag == 0)")
-            submit = st.form_submit_button("Save Memory")
-            if submit and k and v:
-                res = st.session_state.memory_store.save_memory(category=cat, key=k, value=v)
-                st.success(res["message"])
+    st.divider()
+    st.subheader("🧠 Business Rules Memory")
+    saved_memories = load_memories()
+    if saved_memories:
+        for m in saved_memories:
+            col_txt, col_del = st.columns([0.8, 0.2])
+            col_txt.caption(f"• {m['text']}")
+            if col_del.button("✕", key=f"del_{m['id']}", help="Delete rule"):
+                delete_memory(m["id"])
                 st.rerun()
+    else:
+        st.caption("No rules saved. Type `remember: <rule>` in chat to save one.")
 
+    if st.button("Clear Chat", use_container_width=True):
+        st.session_state.messages = []
+        st.rerun()
 
-# ==============================================================================
-# MAIN VIEW: CHAT INTERFACE & TOOL EXECUTION TRACE
-# ==============================================================================
+# Main Area: Header and Chat
+st.header("📊 Agentic Data Analyst")
 
-st.title("🤖 Tabular Data Analysis Agent")
-backend_info = st.session_state.agent.llm.get_backend_info()
-st.caption(f"Active Backend: **{backend_info['description']}**")
-if backend_info["is_heuristic"]:
-    st.warning("⚠️ **Heuristic Fallback Mode Active**: Running in rule-based fallback mode. To enable general-purpose semantic query reasoning and tool chaining, configure `GEMINI_API_KEY` or start local Ollama.")
+if df is None:
+    st.info("👋 Welcome! Please upload a CSV, TSV, or Excel file in the sidebar to begin analyzing your data.")
+else:
+    # Handle pending memory confirmation if user typed "remember: ..."
+    if st.session_state.pending_memory:
+        st.warning(f"Do you want to save this rule to memory?\n\n**'{st.session_state.pending_memory}'**")
+        c1, c2 = st.columns([0.2, 0.8])
+        if c1.button("💾 Save Rule"):
+            save_memory(st.session_state.pending_memory)
+            st.session_state.pending_memory = None
+            st.success("Rule saved to memory!")
+            st.rerun()
+        if c2.button("Cancel"):
+            st.session_state.pending_memory = None
+            st.rerun()
 
-st.markdown("Ask natural-language questions about your data. The agent computes answers using deterministic tools and recalls your saved definitions.")
+    # Display chat message history with tool traces and charts
+    for msg in st.session_state.messages:
+        with st.chat_message(msg["role"]):
+            st.write(msg["content"])
+            if msg.get("chart_path") and os.path.exists(msg["chart_path"]):
+                st.image(msg["chart_path"])
+            if msg.get("traces"):
+                with st.expander("🛠️ Tool Trace & Raw Results", expanded=False):
+                    for trace in msg["traces"]:
+                        st.markdown(f"**Tool:** `{trace['tool']}`")
+                        st.caption("Arguments:")
+                        st.json(trace.get("args", {}))
+                        st.caption("Output:")
+                        st.json(trace.get("result", {}))
 
-# Display Chat History
-for msg in st.session_state.messages:
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
+    # Chat input box
+    if prompt := st.chat_input("Ask a question about your data..."):
+        if prompt.strip().lower().startswith("remember:"):
+            # Set confirmation state for user memory addition
+            st.session_state.pending_memory = prompt.strip()[9:].strip()
+            st.rerun()
+        else:
+            # Display user question
+            st.session_state.messages.append({"role": "user", "content": prompt})
+            with st.chat_message("user"):
+                st.write(prompt)
 
-        # Display tool execution box if present
-        if msg.get("tool_used"):
-            with st.expander(f"🛠️ Tool Trace: `{msg['tool_used']}`", expanded=False):
-                if msg.get("memories_used"):
-                    st.info(f"🧠 **Memories Applied**: {', '.join(msg['memories_used'])}")
-                st.caption(f"**Arguments**: `{json.dumps(msg.get('tool_arguments', {}), default=str)}`")
-                inter = msg.get("intermediate_result", {})
-                if isinstance(inter, dict) and "data" in inter and isinstance(inter["data"], list):
-                    st.dataframe(pd.DataFrame(inter["data"]))
-                else:
-                    st.json(inter)
+            # Retrieve only keywords matching saved memory
+            relevant_rules = find_relevant_memories(prompt)
 
-        # Display chart if generated
-        if msg.get("chart_path") and os.path.exists(msg["chart_path"]):
-            st.image(msg["chart_path"], caption=msg.get("chart_title", "Generated Chart"))
+            with st.chat_message("assistant"):
+                with st.spinner("Analyzing data with tools..."):
+                    result = ask_agent(df, prompt, chat_history=st.session_state.messages[:-1], memories=relevant_rules)
+                st.write(result["answer"])
+                if result.get("chart_path") and os.path.exists(result["chart_path"]):
+                    st.image(result["chart_path"])
+                if result.get("traces"):
+                    with st.expander("🛠️ Tool Trace & Raw Results", expanded=False):
+                        for trace in result["traces"]:
+                            st.markdown(f"**Tool:** `{trace['tool']}`")
+                            st.caption("Arguments:")
+                            st.json(trace.get("args", {}))
+                            st.caption("Output:")
+                            st.json(trace.get("result", {}))
 
-# Chat Input
-prompt = st.chat_input("Ask a question or provide a definition...")
-
-if prompt:
-    # Append user message
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
-
-    # Agent Response
-    with st.chat_message("assistant"):
-        with st.spinner("Analyzing data..."):
-            res = st.session_state.agent.ask(prompt)
-
-        st.markdown(res["answer"])
-
-        # Check for chart
-        chart_path = None
-        chart_title = None
-        inter = res.get("intermediate_result")
-        if isinstance(inter, dict) and inter.get("saved_image_path"):
-            chart_path = inter["saved_image_path"]
-            chart_title = inter.get("title", "Generated Chart")
-            if os.path.exists(chart_path):
-                st.image(chart_path, caption=chart_title)
-
-        # Show tool trace
-        if res.get("tool_used"):
-            with st.expander(f"🛠️ Tool Trace: `{res['tool_used']}`", expanded=True):
-                if res.get("memories_used"):
-                    st.info(f"🧠 **Memories Applied**: {', '.join(res['memories_used'])}")
-                st.caption(f"**Arguments**: `{json.dumps(res.get('tool_arguments', {}), default=str)}`")
-                if isinstance(inter, dict) and "data" in inter and isinstance(inter["data"], list):
-                    st.dataframe(pd.DataFrame(inter["data"]))
-                else:
-                    st.json(inter)
-
-    # Save to history
-    st.session_state.messages.append({
-        "role": "assistant",
-        "content": res["answer"],
-        "tool_used": res.get("tool_used"),
-        "tool_arguments": res.get("tool_arguments"),
-        "intermediate_result": res.get("intermediate_result"),
-        "memories_used": res.get("memories_used"),
-        "chart_path": chart_path,
-        "chart_title": chart_title
-    })
+            st.session_state.messages.append({
+                "role": "assistant",
+                "content": result["answer"],
+                "traces": result.get("traces", []),
+                "chart_path": result.get("chart_path")
+            })
