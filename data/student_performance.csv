@@ -1,0 +1,151 @@
+student_id,gender,department,study_hours_per_week,attendance_rate,midterm_score,final_score,total_score,pass_status,scholarship
+STU_0001,Female,Business,12.5,98.9,80.9,76.8,78.4,Pass,No
+STU_0002,Female,Biology,9.6,64.6,65.5,52.9,57.9,Fail,No
+STU_0003,Female,Business,18.2,95.9,91.2,82.9,86.2,Pass,Yes
+STU_0004,Female,Arts,8.6,90.0,76.3,72.2,73.8,Pass,No
+STU_0005,Male,Engineering,15.4,89.4,99.3,86.1,91.4,Pass,Yes
+STU_0006,Male,Business,12.2,70.3,70.0,70.2,70.1,Pass,No
+STU_0007,Male,Arts,24.0,78.1,100.0,100.0,100.0,Pass,Yes
+STU_0008,Female,Engineering,8.6,66.2,66.6,56.1,60.3,Pass,No
+STU_0009,Female,Biology,13.1,98.6,86.9,93.6,90.9,Pass,Yes
+STU_0010,Male,Business,24.2,94.0,100.0,95.8,97.5,Pass,Yes
+STU_0011,Male,Computer Science,20.6,85.9,100.0,100.0,100.0,Pass,Yes
+STU_0012,Female,Engineering,26.4,86.1,100.0,100.0,100.0,Pass,Yes
+STU_0013,Female,Business,25.8,87.3,100.0,100.0,100.0,Pass,Yes
+STU_0014,Male,Arts,6.9,67.6,68.9,55.4,60.8,Pass,No
+STU_0015,Male,Business,18.2,87.3,95.7,93.9,94.6,Pass,Yes
+STU_0016,Male,Arts,23.8,89.3,100.0,100.0,100.0,Pass,Yes
+STU_0017,Female,Biology,14.2,73.9,88.1,78.5,82.3,Pass,No
+STU_0018,Male,Biology,17.9,95.7,93.4,91.5,92.3,Pass,Yes
+STU_0019,Female,Biology,10.6,89.2,70.8,54.6,61.1,Pass,No
+STU_0020,Female,Engineering,13.8,84.9,86.2,87.8,87.2,Pass,Yes
+STU_0021,Male,Computer Science,18.1,88.9,92.7,98.4,96.1,Pass,Yes
+STU_0022,Male,Arts,8.8,68.5,77.9,66.5,71.1,Pass,No
+STU_0023,Female,Arts,14.6,84.9,88.0,83.0,85.0,Pass,Yes
+STU_0024,Male,Engineering,21.2,81.1,100.0,100.0,100.0,Pass,Yes
+STU_0025,Male,Business,9.6,95.6,82.8,67.4,73.6,Pass,No
+STU_0026,Male,Computer Science,10.3,85.9,66.8,70.1,68.8,Pass,No
+STU_0027,Female,Engineering,9.1,82.3,80.1,63.4,70.1,Pass,No
+STU_0028,Male,Computer Science,21.0,88.5,100.0,92.9,95.7,Pass,Yes
+STU_0029,Female,Engineering,21.4,89.1,100.0,100.0,100.0,Pass,Yes
+STU_0030,Female,Arts,13.3,73.4,91.0,80.9,84.9,Pass,No
+STU_0031,Male,Engineering,12.9,100.0,90.3,81.2,84.8,Pass,No
+STU_0032,Male,Arts,6.7,80.6,69.6,58.6,63.0,Pass,No
+STU_0033,Male,Biology,16.8,82.8,92.7,81.6,86.0,Pass,Yes
+STU_0034,Female,Arts,9.0,72.8,76.2,61.2,67.2,Pass,No
+STU_0035,Female,Computer Science,10.0,80.1,73.8,61.9,66.7,Pass,No
+STU_0036,Female,Computer Science,14.5,70.3,78.1,79.3,78.8,Pass,No
+STU_0037,Male,Engineering,14.0,75.3,77.5,68.1,71.9,Pass,No
+STU_0038,Female,Arts,22.0,95.6,96.9,100.0,98.8,Pass,Yes
+STU_0039,Female,Arts,19.9,57.7,98.5,90.0,93.4,Pass,Yes
+STU_0040,Male,Computer Science,22.6,69.7,97.9,85.0,90.2,Pass,Yes
+STU_0041,Male,Business,12.5,81.7,82.8,77.6,79.7,Pass,No
+STU_0042,Female,Arts,10.8,92.0,67.4,70.4,69.2,Pass,No
+STU_0043,Female,Business,19.6,86.0,97.7,88.8,92.4,Pass,Yes
+STU_0044,Male,Arts,15.9,78.5,95.6,84.3,88.8,Pass,Yes
+STU_0045,Male,Arts,13.0,73.7,87.0,68.3,75.8,Pass,No
+STU_0046,Female,Biology,15.3,76.8,76.6,76.4,76.5,Pass,No
+STU_0047,Female,Computer Science,14.0,87.6,90.4,80.0,84.2,Pass,No
+STU_0048,Male,Biology,17.2,75.7,86.4,78.4,81.6,Pass,No
+STU_0049,Male,Business,13.3,79.1,78.8,67.7,72.1,Pass,No
+STU_0050,Female,Biology,18.3,94.3,100.0,92.3,95.4,Pass,Yes
+STU_0051,Female,Biology,15.5,79.9,94.9,87.4,90.4,Pass,Yes
+STU_0052,Male,Biology,10.0,68.1,66.3,64.4,65.2,Pass,No
+STU_0053,Male,Arts,12.3,75.4,80.0,82.6,81.6,Pass,No
+STU_0054,Male,Arts,7.7,86.4,75.7,68.2,71.2,Pass,No
+STU_0055,Female,Arts,13.5,86.7,88.5,75.7,80.8,Pass,No
+STU_0056,Male,Engineering,18.3,89.0,92.9,89.6,90.9,Pass,Yes
+STU_0057,Female,Arts,14.6,89.5,92.4,86.9,89.1,Pass,Yes
+STU_0058,Male,Arts,15.1,100.0,95.6,92.9,94.0,Pass,Yes
+STU_0059,Male,Biology,16.1,87.5,97.3,88.4,92.0,Pass,Yes
+STU_0060,Male,Engineering,26.9,85.5,100.0,100.0,100.0,Pass,Yes
+STU_0061,Male,Business,18.9,84.4,89.0,83.6,85.8,Pass,Yes
+STU_0062,Male,Arts,5.6,77.6,56.2,54.4,55.1,Fail,No
+STU_0063,Male,Engineering,11.6,89.5,79.4,71.2,74.5,Pass,No
+STU_0064,Male,Biology,20.3,87.3,100.0,93.2,95.9,Pass,Yes
+STU_0065,Female,Biology,16.6,85.3,81.8,95.6,90.1,Pass,Yes
+STU_0066,Male,Biology,15.1,75.3,79.9,76.8,78.0,Pass,No
+STU_0067,Female,Computer Science,17.9,88.8,90.6,90.9,90.8,Pass,Yes
+STU_0068,Female,Biology,11.8,94.2,92.2,95.0,93.9,Pass,Yes
+STU_0069,Male,Engineering,9.0,81.5,67.8,61.9,64.3,Pass,No
+STU_0070,Female,Arts,9.9,93.0,86.2,71.9,77.6,Pass,No
+STU_0071,Male,Computer Science,14.3,96.5,96.9,85.3,89.9,Pass,Yes
+STU_0072,Female,Business,12.4,78.9,76.2,65.0,69.5,Pass,No
+STU_0073,Female,Arts,16.6,75.3,82.1,77.0,79.0,Pass,No
+STU_0074,Female,Business,10.1,85.8,75.1,69.5,71.7,Pass,No
+STU_0075,Male,Biology,20.7,70.3,99.1,96.3,97.4,Pass,Yes
+STU_0076,Male,Business,20.7,81.9,91.2,100.0,96.5,Pass,Yes
+STU_0077,Male,Arts,7.8,77.7,75.6,54.7,63.1,Pass,No
+STU_0078,Male,Engineering,16.3,89.0,89.2,84.6,86.4,Pass,Yes
+STU_0079,Male,Engineering,12.9,67.3,72.9,68.9,70.5,Pass,No
+STU_0080,Male,Biology,13.5,94.7,77.9,73.7,75.4,Pass,No
+STU_0081,Male,Arts,23.7,76.9,100.0,100.0,100.0,Pass,Yes
+STU_0082,Male,Computer Science,21.5,75.3,99.8,93.8,96.2,Pass,Yes
+STU_0083,Male,Biology,22.0,75.7,100.0,100.0,100.0,Pass,Yes
+STU_0084,Female,Biology,15.4,96.9,86.0,82.9,84.1,Pass,No
+STU_0085,Female,Computer Science,8.2,90.2,82.0,73.3,76.8,Pass,No
+STU_0086,Female,Computer Science,5.3,94.9,74.2,54.5,62.4,Pass,No
+STU_0087,Male,Business,11.9,95.0,86.5,76.0,80.2,Pass,No
+STU_0088,Female,Biology,7.2,78.5,79.6,56.8,65.9,Pass,No
+STU_0089,Male,Business,17.3,77.8,100.0,80.2,88.1,Pass,Yes
+STU_0090,Male,Arts,18.2,97.3,100.0,92.3,95.4,Pass,Yes
+STU_0091,Female,Computer Science,13.0,95.0,91.2,79.1,83.9,Pass,No
+STU_0092,Male,Arts,17.1,78.6,87.2,84.7,85.7,Pass,Yes
+STU_0093,Male,Computer Science,17.9,91.4,96.7,96.6,96.6,Pass,Yes
+STU_0094,Male,Engineering,7.3,75.0,73.0,69.3,70.8,Pass,No
+STU_0095,Male,Arts,12.9,81.6,81.3,71.3,75.3,Pass,No
+STU_0096,Male,Business,13.3,88.8,85.7,83.0,84.1,Pass,No
+STU_0097,Male,Engineering,12.4,97.2,93.7,82.3,86.9,Pass,Yes
+STU_0098,Female,Business,12.2,72.3,82.6,79.6,80.8,Pass,No
+STU_0099,Female,Engineering,7.4,63.8,63.0,55.9,58.7,Fail,No
+STU_0100,Male,Business,19.7,95.6,97.9,93.8,95.4,Pass,Yes
+STU_0101,Male,Biology,15.4,64.0,87.0,69.4,76.4,Pass,No
+STU_0102,Female,Biology,9.0,80.0,66.6,70.9,69.2,Pass,No
+STU_0103,Female,Computer Science,20.1,63.0,95.0,97.9,96.7,Pass,Yes
+STU_0104,Male,Business,18.3,73.4,88.9,78.2,82.5,Pass,No
+STU_0105,Female,Arts,19.4,75.6,97.9,94.2,95.7,Pass,Yes
+STU_0106,Male,Arts,9.1,77.0,71.1,57.5,62.9,Pass,No
+STU_0107,Male,Computer Science,15.0,82.8,88.2,84.1,85.7,Pass,Yes
+STU_0108,Male,Arts,13.1,70.1,89.7,80.8,84.4,Pass,No
+STU_0109,Female,Arts,14.3,88.1,92.6,89.7,90.9,Pass,Yes
+STU_0110,Male,Arts,19.9,81.6,100.0,86.6,92.0,Pass,Yes
+STU_0111,Female,Arts,12.0,68.6,69.9,63.5,66.1,Pass,No
+STU_0112,Female,Engineering,17.7,93.2,89.0,87.9,88.3,Pass,Yes
+STU_0113,Female,Business,15.5,54.3,72.6,73.1,72.9,Pass,No
+STU_0114,Male,Arts,16.7,75.2,87.0,87.2,87.1,Pass,Yes
+STU_0115,Female,Computer Science,16.9,72.3,89.9,71.8,79.0,Pass,No
+STU_0116,Female,Computer Science,15.6,86.4,96.8,88.9,92.1,Pass,Yes
+STU_0117,Female,Computer Science,14.7,71.9,84.3,81.7,82.7,Pass,No
+STU_0118,Female,Computer Science,10.9,81.8,81.8,62.0,69.9,Pass,No
+STU_0119,Male,Engineering,15.8,100.0,100.0,90.9,94.5,Pass,Yes
+STU_0120,Male,Arts,14.0,94.6,82.3,74.5,77.6,Pass,No
+STU_0121,Male,Business,13.5,80.9,80.0,82.3,81.4,Pass,No
+STU_0122,Male,Arts,13.3,72.3,80.0,76.7,78.0,Pass,No
+STU_0123,Male,Biology,15.2,89.1,91.9,82.4,86.2,Pass,Yes
+STU_0124,Female,Arts,2.9,72.0,55.5,41.3,47.0,Fail,No
+STU_0125,Male,Business,17.1,95.8,100.0,87.9,92.7,Pass,Yes
+STU_0126,Female,Computer Science,19.6,85.1,97.5,94.2,95.5,Pass,Yes
+STU_0127,Female,Computer Science,17.2,69.5,87.0,79.4,82.4,Pass,No
+STU_0128,Male,Business,11.4,100.0,85.9,80.9,82.9,Pass,No
+STU_0129,Male,Computer Science,21.6,74.1,98.3,91.6,94.3,Pass,Yes
+STU_0130,Male,Business,15.8,72.3,81.8,77.6,79.3,Pass,No
+STU_0131,Male,Engineering,9.2,81.1,86.1,78.9,81.8,Pass,No
+STU_0132,Male,Arts,19.1,77.1,89.6,93.4,91.9,Pass,Yes
+STU_0133,Female,Business,21.3,83.3,95.0,92.4,93.4,Pass,Yes
+STU_0134,Female,Engineering,16.2,88.8,88.9,83.8,85.8,Pass,Yes
+STU_0135,Male,Biology,14.6,100.0,99.1,87.0,91.8,Pass,Yes
+STU_0136,Male,Arts,19.4,97.5,100.0,100.0,100.0,Pass,Yes
+STU_0137,Female,Arts,20.4,75.8,96.5,92.9,94.3,Pass,Yes
+STU_0138,Female,Computer Science,22.0,77.0,100.0,93.2,95.9,Pass,Yes
+STU_0139,Female,Business,14.8,80.7,81.9,78.3,79.7,Pass,No
+STU_0140,Male,Biology,14.5,80.5,81.0,76.3,78.2,Pass,No
+STU_0141,Male,Computer Science,11.0,80.2,70.5,66.1,67.9,Pass,No
+STU_0142,Female,Arts,16.8,84.8,94.3,91.4,92.6,Pass,Yes
+STU_0143,Male,Biology,16.6,74.8,85.1,85.7,85.5,Pass,Yes
+STU_0144,Male,Arts,2.0,69.9,56.5,49.6,52.4,Fail,No
+STU_0145,Female,Computer Science,19.1,87.4,96.6,93.7,94.9,Pass,Yes
+STU_0146,Female,Computer Science,23.4,91.6,100.0,100.0,100.0,Pass,Yes
+STU_0147,Female,Computer Science,16.4,100.0,93.8,83.1,87.4,Pass,Yes
+STU_0148,Female,Engineering,21.7,75.0,99.1,100.0,99.6,Pass,Yes
+STU_0149,Female,Computer Science,18.9,78.2,100.0,91.5,94.9,Pass,Yes
+STU_0150,Female,Arts,13.0,94.3,78.0,71.3,74.0,Pass,No

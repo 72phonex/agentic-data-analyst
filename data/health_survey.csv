@@ -1,0 +1,181 @@
+participant_id,age,gender,bmi,exercise_frequency,smoker_status,systolic_bp,diastolic_bp,cholesterol,diabetes_risk
+HLT_0001,65,Male,21.0,Moderate,Former Smoker,152,97,239,High
+HLT_0002,44,Female,29.2,Sedentary,Former Smoker,144,82,207,Low
+HLT_0003,71,Male,30.0,Active,Non-Smoker,154,85,271,High
+HLT_0004,49,Female,23.7,Sedentary,Former Smoker,128,89,195,Low
+HLT_0005,27,Male,30.5,Moderate,Former Smoker,146,84,215,High
+HLT_0006,22,Male,19.3,Sedentary,Non-Smoker,129,72,199,Low
+HLT_0007,54,Male,28.1,Moderate,Non-Smoker,146,92,198,High
+HLT_0008,22,Male,19.8,Moderate,Non-Smoker,132,84,191,Low
+HLT_0009,55,Female,25.4,Sedentary,Non-Smoker,138,91,232,Low
+HLT_0010,39,Male,24.1,Moderate,Current Smoker,158,84,193,Low
+HLT_0011,61,Female,24.2,Sedentary,Non-Smoker,145,92,216,High
+HLT_0012,43,Male,22.3,Active,Current Smoker,158,88,221,Low
+HLT_0013,66,Female,23.7,Moderate,Non-Smoker,146,89,210,High
+HLT_0014,58,Female,24.8,Moderate,Non-Smoker,149,93,222,High
+HLT_0015,56,Female,24.1,Active,Non-Smoker,132,87,208,Low
+HLT_0016,40,Female,29.9,Moderate,Non-Smoker,127,85,210,Low
+HLT_0017,64,Female,24.8,Sedentary,Current Smoker,142,84,233,High
+HLT_0018,54,Male,18.8,Moderate,Current Smoker,143,77,211,High
+HLT_0019,27,Female,27.3,Moderate,Former Smoker,121,101,216,Low
+HLT_0020,65,Male,30.5,Moderate,Non-Smoker,149,97,245,High
+HLT_0021,69,Female,22.3,Moderate,Non-Smoker,148,84,232,High
+HLT_0022,23,Male,30.2,Active,Non-Smoker,138,88,202,High
+HLT_0023,41,Male,23.6,Moderate,Non-Smoker,137,76,220,Low
+HLT_0024,42,Female,24.0,Sedentary,Former Smoker,150,80,194,Low
+HLT_0025,32,Female,20.8,Sedentary,Non-Smoker,128,71,207,Low
+HLT_0026,62,Female,29.1,Moderate,Former Smoker,159,97,224,High
+HLT_0027,49,Male,29.6,Sedentary,Former Smoker,143,92,206,Low
+HLT_0028,73,Female,24.5,Sedentary,Former Smoker,153,76,240,High
+HLT_0029,42,Male,21.9,Sedentary,Former Smoker,127,76,191,Low
+HLT_0030,67,Male,31.7,Moderate,Non-Smoker,147,94,249,High
+HLT_0031,45,Female,21.8,Sedentary,Non-Smoker,135,88,232,Low
+HLT_0032,66,Female,21.6,Sedentary,Non-Smoker,141,87,230,High
+HLT_0033,44,Female,23.5,Moderate,Non-Smoker,137,82,201,Low
+HLT_0034,53,Male,25.3,Sedentary,Non-Smoker,133,89,213,Low
+HLT_0035,24,Male,27.1,Moderate,Non-Smoker,138,84,184,Low
+HLT_0036,54,Female,23.3,Moderate,Current Smoker,147,78,215,High
+HLT_0037,70,Male,17.5,Sedentary,Former Smoker,135,88,214,Low
+HLT_0038,24,Male,25.8,Sedentary,Current Smoker,156,91,219,Low
+HLT_0039,35,Male,30.5,Moderate,Former Smoker,130,90,188,High
+HLT_0040,73,Female,21.5,Moderate,Non-Smoker,142,95,233,High
+HLT_0041,58,Male,31.7,Active,Former Smoker,146,99,253,High
+HLT_0042,48,Female,35.5,Sedentary,Current Smoker,157,92,255,High
+HLT_0043,75,Female,27.0,Moderate,Non-Smoker,140,93,258,Low
+HLT_0044,50,Female,20.3,Sedentary,Non-Smoker,124,83,249,Low
+HLT_0045,45,Male,30.3,Sedentary,Former Smoker,140,88,198,High
+HLT_0046,51,Male,31.2,Moderate,Current Smoker,144,94,213,High
+HLT_0047,42,Male,23.4,Moderate,Non-Smoker,144,80,231,Low
+HLT_0048,25,Female,32.9,Moderate,Non-Smoker,145,91,197,High
+HLT_0049,22,Male,28.5,Sedentary,Former Smoker,143,91,231,Low
+HLT_0050,39,Female,24.6,Moderate,Current Smoker,140,88,224,Low
+HLT_0051,41,Female,24.7,Sedentary,Non-Smoker,138,93,222,Low
+HLT_0052,55,Male,33.4,Active,Current Smoker,159,90,238,High
+HLT_0053,26,Female,21.1,Sedentary,Non-Smoker,136,83,191,Low
+HLT_0054,71,Female,22.2,Sedentary,Non-Smoker,137,88,228,Low
+HLT_0055,44,Female,24.7,Moderate,Former Smoker,134,88,210,Low
+HLT_0056,28,Female,26.6,Moderate,Current Smoker,132,83,212,Low
+HLT_0057,39,Female,26.6,Moderate,Non-Smoker,148,87,212,Low
+HLT_0058,64,Male,28.2,Sedentary,Non-Smoker,159,86,214,High
+HLT_0059,72,Female,24.3,Moderate,Non-Smoker,148,75,229,High
+HLT_0060,45,Male,32.5,Moderate,Non-Smoker,156,86,202,High
+HLT_0061,71,Female,28.2,Sedentary,Non-Smoker,151,103,250,High
+HLT_0062,54,Male,22.8,Moderate,Former Smoker,133,94,230,Low
+HLT_0063,61,Female,25.8,Moderate,Non-Smoker,152,93,212,High
+HLT_0064,47,Female,24.7,Active,Non-Smoker,147,87,251,Low
+HLT_0065,29,Male,25.3,Moderate,Former Smoker,130,84,206,Low
+HLT_0066,30,Female,32.2,Moderate,Former Smoker,155,86,204,High
+HLT_0067,30,Male,26.3,Active,Non-Smoker,129,78,213,Low
+HLT_0068,38,Female,21.1,Sedentary,Current Smoker,142,85,213,Low
+HLT_0069,71,Female,31.8,Sedentary,Former Smoker,146,107,245,High
+HLT_0070,22,Female,30.6,Active,Non-Smoker,135,86,203,High
+HLT_0071,73,Male,27.0,Active,Non-Smoker,157,97,223,High
+HLT_0072,29,Female,30.0,Active,Current Smoker,159,92,216,Low
+HLT_0073,40,Male,23.8,Sedentary,Non-Smoker,144,80,206,Low
+HLT_0074,61,Female,20.6,Moderate,Former Smoker,143,92,254,High
+HLT_0075,70,Female,32.6,Sedentary,Non-Smoker,169,89,228,High
+HLT_0076,22,Male,33.1,Active,Former Smoker,135,92,219,High
+HLT_0077,37,Male,24.9,Active,Former Smoker,135,96,228,Low
+HLT_0078,55,Male,25.2,Active,Non-Smoker,135,91,229,Low
+HLT_0079,74,Male,31.7,Moderate,Current Smoker,170,96,259,High
+HLT_0080,42,Male,24.3,Sedentary,Non-Smoker,124,89,217,Low
+HLT_0081,71,Female,28.0,Moderate,Non-Smoker,155,78,232,High
+HLT_0082,35,Male,25.2,Sedentary,Non-Smoker,140,80,182,Low
+HLT_0083,66,Female,28.4,Sedentary,Former Smoker,165,98,234,High
+HLT_0084,25,Male,25.6,Sedentary,Non-Smoker,155,73,208,Low
+HLT_0085,37,Female,18.6,Sedentary,Non-Smoker,133,90,165,Low
+HLT_0086,30,Female,28.4,Moderate,Former Smoker,128,81,202,Low
+HLT_0087,74,Female,28.1,Active,Non-Smoker,152,103,266,High
+HLT_0088,75,Male,34.2,Sedentary,Current Smoker,181,88,261,High
+HLT_0089,53,Female,23.0,Moderate,Current Smoker,155,86,236,High
+HLT_0090,31,Female,21.8,Moderate,Non-Smoker,123,87,189,Low
+HLT_0091,27,Male,23.0,Moderate,Former Smoker,135,82,247,Low
+HLT_0092,56,Female,34.3,Moderate,Non-Smoker,149,80,239,High
+HLT_0093,54,Male,24.3,Sedentary,Non-Smoker,144,96,206,High
+HLT_0094,25,Male,19.0,Active,Current Smoker,133,87,206,Low
+HLT_0095,39,Female,27.5,Moderate,Current Smoker,128,76,237,Low
+HLT_0096,33,Female,26.8,Moderate,Non-Smoker,142,77,196,Low
+HLT_0097,44,Female,23.8,Active,Current Smoker,145,81,214,Low
+HLT_0098,53,Female,29.3,Sedentary,Non-Smoker,148,104,228,High
+HLT_0099,34,Female,25.0,Active,Current Smoker,148,87,210,Low
+HLT_0100,67,Female,27.8,Active,Current Smoker,144,82,262,High
+HLT_0101,47,Female,24.4,Active,Former Smoker,144,79,225,Low
+HLT_0102,53,Male,31.9,Moderate,Current Smoker,175,93,220,High
+HLT_0103,59,Female,21.2,Sedentary,Non-Smoker,150,97,223,High
+HLT_0104,58,Male,31.1,Moderate,Non-Smoker,137,88,259,High
+HLT_0105,61,Female,25.2,Moderate,Non-Smoker,142,95,236,High
+HLT_0106,42,Female,18.9,Active,Former Smoker,116,82,193,Low
+HLT_0107,22,Male,28.2,Moderate,Former Smoker,143,83,197,Low
+HLT_0108,50,Male,35.7,Moderate,Non-Smoker,145,90,231,High
+HLT_0109,52,Female,27.4,Active,Non-Smoker,145,83,258,High
+HLT_0110,26,Male,28.6,Moderate,Non-Smoker,140,87,201,Low
+HLT_0111,60,Male,25.2,Moderate,Former Smoker,136,88,230,Low
+HLT_0112,43,Female,31.1,Moderate,Current Smoker,151,81,216,High
+HLT_0113,41,Female,30.2,Moderate,Non-Smoker,145,89,219,High
+HLT_0114,27,Male,29.3,Moderate,Non-Smoker,124,87,227,Low
+HLT_0115,27,Male,28.6,Moderate,Non-Smoker,128,83,200,Low
+HLT_0116,56,Male,30.2,Moderate,Non-Smoker,162,91,248,High
+HLT_0117,36,Male,24.1,Moderate,Non-Smoker,132,79,184,Low
+HLT_0118,48,Female,18.4,Active,Non-Smoker,129,72,204,Low
+HLT_0119,52,Female,24.7,Active,Former Smoker,141,75,221,High
+HLT_0120,73,Female,32.0,Sedentary,Current Smoker,174,106,242,High
+HLT_0121,30,Female,17.5,Moderate,Current Smoker,147,72,175,Low
+HLT_0122,38,Male,34.9,Sedentary,Non-Smoker,134,86,230,High
+HLT_0123,39,Male,27.1,Moderate,Non-Smoker,137,87,207,Low
+HLT_0124,31,Female,21.1,Active,Non-Smoker,125,90,216,Low
+HLT_0125,72,Male,32.7,Active,Non-Smoker,143,91,231,High
+HLT_0126,52,Female,28.6,Moderate,Former Smoker,151,85,235,High
+HLT_0127,43,Female,31.4,Sedentary,Non-Smoker,145,84,245,High
+HLT_0128,41,Male,31.4,Moderate,Current Smoker,138,90,233,High
+HLT_0129,69,Male,27.1,Moderate,Former Smoker,142,98,246,High
+HLT_0130,74,Male,26.1,Active,Former Smoker,137,89,240,Low
+HLT_0131,41,Male,32.3,Active,Non-Smoker,154,93,248,High
+HLT_0132,75,Female,26.5,Active,Former Smoker,160,92,269,High
+HLT_0133,54,Male,25.0,Sedentary,Non-Smoker,139,85,218,Low
+HLT_0134,52,Male,21.7,Sedentary,Former Smoker,151,87,220,High
+HLT_0135,25,Female,31.3,Sedentary,Non-Smoker,124,86,218,High
+HLT_0136,63,Male,17.5,Active,Former Smoker,138,83,223,Low
+HLT_0137,33,Female,27.5,Active,Former Smoker,146,84,198,Low
+HLT_0138,46,Male,23.4,Sedentary,Non-Smoker,139,80,201,Low
+HLT_0139,22,Male,20.9,Sedentary,Former Smoker,121,74,194,Low
+HLT_0140,39,Male,28.8,Moderate,Current Smoker,144,86,224,Low
+HLT_0141,70,Female,33.1,Active,Former Smoker,146,91,227,High
+HLT_0142,68,Female,17.8,Sedentary,Non-Smoker,119,86,228,Low
+HLT_0143,67,Female,22.6,Moderate,Former Smoker,155,76,236,High
+HLT_0144,44,Male,31.4,Active,Non-Smoker,130,92,227,High
+HLT_0145,38,Female,35.6,Moderate,Non-Smoker,138,92,253,High
+HLT_0146,48,Male,22.4,Moderate,Non-Smoker,145,94,222,Low
+HLT_0147,59,Female,23.6,Sedentary,Former Smoker,143,83,223,High
+HLT_0148,31,Female,30.6,Active,Current Smoker,147,90,211,High
+HLT_0149,67,Female,27.4,Moderate,Non-Smoker,140,92,235,Low
+HLT_0150,39,Female,26.7,Moderate,Non-Smoker,132,86,207,Low
+HLT_0151,61,Male,23.4,Active,Non-Smoker,137,93,229,Low
+HLT_0152,45,Female,32.4,Moderate,Non-Smoker,135,100,226,High
+HLT_0153,36,Male,25.7,Moderate,Non-Smoker,138,87,211,Low
+HLT_0154,40,Male,25.7,Sedentary,Current Smoker,136,91,212,Low
+HLT_0155,53,Male,26.5,Active,Former Smoker,138,93,225,Low
+HLT_0156,30,Female,25.9,Sedentary,Non-Smoker,122,83,202,Low
+HLT_0157,62,Male,27.3,Moderate,Non-Smoker,136,100,250,Low
+HLT_0158,25,Female,22.7,Moderate,Non-Smoker,132,87,216,Low
+HLT_0159,62,Female,24.4,Moderate,Non-Smoker,155,87,224,High
+HLT_0160,75,Female,20.3,Sedentary,Former Smoker,145,82,235,High
+HLT_0161,71,Male,32.4,Moderate,Non-Smoker,136,99,262,High
+HLT_0162,35,Male,26.3,Moderate,Current Smoker,146,90,190,Low
+HLT_0163,31,Female,26.8,Moderate,Current Smoker,141,81,194,Low
+HLT_0164,40,Male,24.5,Sedentary,Non-Smoker,136,83,238,Low
+HLT_0165,42,Male,26.4,Moderate,Non-Smoker,134,92,198,Low
+HLT_0166,32,Male,23.5,Moderate,Current Smoker,148,92,219,Low
+HLT_0167,33,Female,17.5,Sedentary,Non-Smoker,139,87,176,Low
+HLT_0168,63,Female,31.8,Sedentary,Current Smoker,169,97,252,High
+HLT_0169,59,Male,28.7,Sedentary,Non-Smoker,135,90,234,Low
+HLT_0170,65,Female,21.3,Active,Non-Smoker,144,97,236,High
+HLT_0171,22,Female,33.1,Sedentary,Non-Smoker,134,85,201,High
+HLT_0172,64,Female,19.9,Moderate,Non-Smoker,143,94,197,High
+HLT_0173,61,Female,37.0,Moderate,Non-Smoker,155,92,243,High
+HLT_0174,70,Male,24.8,Sedentary,Non-Smoker,154,86,231,High
+HLT_0175,74,Female,30.8,Moderate,Non-Smoker,158,90,246,High
+HLT_0176,53,Female,30.2,Moderate,Non-Smoker,150,98,240,High
+HLT_0177,61,Male,31.0,Moderate,Non-Smoker,143,87,260,High
+HLT_0178,74,Female,28.8,Moderate,Non-Smoker,147,93,230,High
+HLT_0179,50,Female,31.9,Sedentary,Non-Smoker,152,84,208,High
+HLT_0180,57,Male,26.1,Sedentary,Non-Smoker,141,87,203,High

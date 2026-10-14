@@ -1,0 +1,25 @@
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pytest_cache/
+
+# Generated charts and artifacts
+charts/
+*.png
+*.html
+
+# Local SQLite databases
+*.db
+*.sqlite3
+
+# Secrets & Environment
+.env
+.env.*
+*.key
+*.pem
