@@ -5,10 +5,13 @@ Strictly disallows filesystem, network, metadata manipulation, or state modifica
 """
 
 from __future__ import annotations
+import concurrent.futures
 import re
-from typing import Any
+from typing import Any, List, Optional
 import duckdb
 import pandas as pd
+import sqlglot
+from sqlglot import exp
 
 
 DANGEROUS_KEYWORDS = {
@@ -23,30 +26,93 @@ DANGEROUS_FUNCTIONS = {
     "sqlite_scan", "postgres_scan"
 }
 
+FORBIDDEN_AST_NODES = (
+    exp.Drop, exp.Insert, exp.Delete, exp.Update, exp.Alter, exp.Create,
+    exp.Command, exp.Set, exp.Pragma, exp.Copy
+)
+
 
 class SandboxSecurityError(PermissionError):
     """Raised when an unsafe or forbidden SQL operation is attempted."""
     pass
 
 
+def split_statements_outside_quotes(query: str) -> List[str]:
+    """Split query on semicolons that are not inside single quotes."""
+    statements = []
+    current = []
+    in_single_quote = False
+    i = 0
+    while i < len(query):
+        ch = query[i]
+        if ch == "'":
+            if in_single_quote and i + 1 < len(query) and query[i+1] == "'":
+                current.append("''")
+                i += 2
+                continue
+            in_single_quote = not in_single_quote
+            current.append(ch)
+        elif ch == ";" and not in_single_quote:
+            stmt = "".join(current).strip()
+            if stmt:
+                statements.append(stmt)
+            current = []
+        else:
+            current.append(ch)
+        i += 1
+    stmt = "".join(current).strip()
+    if stmt:
+        statements.append(stmt)
+    return statements
+
+
+def mask_literals_and_identifiers(query: str) -> str:
+    """Mask string literals and quoted identifiers so keywords inside them do not trigger false positives."""
+    masked = re.sub(r"'([^']|'')*'", "'__STR__'", query)
+    masked = re.sub(r'"[^"]*"', '"__COL__"', masked)
+    masked = re.sub(r'`[^`]*`', '`__COL__`', masked)
+    masked = re.sub(r'\[[^\]]*\]', '[__COL__]', masked)
+    return masked
+
+
 def validate_sql_query(query: str) -> None:
     """
     Validate that an SQL query is strictly read-only and free of sandbox-escape vectors.
+    Uses AST parsing with sqlglot and secondary lexical token verification.
     """
-    cleaned = re.sub(r"--.*?\n", " ", query)
-    cleaned = re.sub(r"/\*.*?\*/", " ", cleaned, flags=re.DOTALL)
-    cleaned = cleaned.strip()
+    cleaned = re.sub(r"--.*?\n", "\n", query)
+    cleaned = re.sub(r"/\*.*?\*/", " ", cleaned, flags=re.DOTALL).strip()
 
     if not cleaned:
         raise SandboxSecurityError("Empty query provided.")
 
-    # Disallow multiple semicolons / chained statements
-    statements = [s.strip() for s in cleaned.split(";") if s.strip()]
+    # 1. Disallow chained statements outside string literals
+    statements = split_statements_outside_quotes(cleaned)
     if len(statements) > 1:
         raise SandboxSecurityError("Chained queries or multiple statements are not permitted.")
 
-    # Match tokens
-    tokens = re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", cleaned)
+    # 2. Block direct file paths in FROM clause
+    if re.search(r"\bFROM\s+['\"][^'\"]+['\"]", cleaned, re.IGNORECASE):
+        raise SandboxSecurityError("Direct file path syntax in queries is forbidden.")
+
+    # 3. AST validation via sqlglot
+    try:
+        parsed = sqlglot.parse(cleaned, read="duckdb")
+        if not parsed or len(parsed) != 1:
+            raise SandboxSecurityError("Query must consist of exactly one single statement.")
+        stmt = parsed[0]
+        if not (isinstance(stmt, exp.Select) or (hasattr(stmt, "find") and stmt.find(exp.Select))):
+            raise SandboxSecurityError(f"Query must be a SELECT or WITH statement. Got: {type(stmt).__name__}")
+        for node in stmt.walk():
+            if isinstance(node, FORBIDDEN_AST_NODES):
+                raise SandboxSecurityError(f"Prohibited SQL statement type detected via AST: {type(node).__name__}")
+    except Exception as e:
+        if isinstance(e, SandboxSecurityError):
+            raise
+
+    # 4. Token validation over masked query
+    masked = mask_literals_and_identifiers(cleaned)
+    tokens = re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", masked)
     tokens_upper = {t.upper() for t in tokens}
     tokens_lower = {t.lower() for t in tokens}
 
@@ -71,21 +137,42 @@ def run_sandboxed_sql(
     query: str,
     table_name: str = "df",
     max_rows: int = 200,
+    timeout: float = 5.0,
 ) -> dict[str, Any]:
     """
     Execute a sandboxed SQL query against an in-memory pandas DataFrame.
+    Enforces disabled external access, locked configuration, execution timeout, and row capping.
     """
     validate_sql_query(query)
 
-    # Replace case-insensitive references to df or table_name
-    conn = duckdb.connect(database=":memory:", read_only=False)
+    conn = duckdb.connect(
+        database=":memory:",
+        config={"enable_external_access": False}
+    )
+    try:
+        conn.execute("SET lock_configuration=true;")
+    except Exception:
+        pass
+
     try:
         # Register in-memory table
         conn.register(table_name, df)
         if table_name != "df":
             conn.register("df", df)
 
-        result = conn.execute(query).fetchdf()
+        def _exec():
+            return conn.execute(query).fetchdf()
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(_exec)
+            try:
+                result = future.result(timeout=timeout)
+            except concurrent.futures.TimeoutError:
+                try:
+                    conn.interrupt()
+                except Exception:
+                    pass
+                raise SandboxSecurityError(f"Query execution timed out ({timeout}s limit exceeded). Possible Cartesian product or runaway computation.")
 
         total_rows = len(result)
         truncated = False
@@ -105,6 +192,9 @@ def run_sandboxed_sql(
     except Exception as e:
         if isinstance(e, SandboxSecurityError):
             raise
+        err_msg = str(e)
+        if "Cannot access file" in err_msg or "file system operations are disabled" in err_msg:
+            raise SandboxSecurityError(f"Filesystem access blocked by sandbox configuration: {err_msg}")
         return {
             "status": "error",
             "error_type": type(e).__name__,

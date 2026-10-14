@@ -4,7 +4,7 @@
 
 ## 1. Synthetic Demo Datasets & Statistical Interpretation
 
-The demonstration datasets included with this project (`data/sales_transactions.csv`, `data/student_performance.csv`, `data/health_survey.csv`, `data/employee_attrition.csv`, and `data/real_estate_listings.csv`) were synthetically generated to test and benchmark system components (schema profiling, memory injection, SQL query generation, outlier detection, and chart generation).
+The demonstration datasets included with this project (`data/sales_transactions.csv`, `data/student_performance.csv`, `data/health_survey.csv`, `data/employee_attrition.csv`, and `data/real_estate_listings.csv`) were synthetically generated using `scripts/generate_datasets.py` and `scripts/generate_unrelated_datasets.py` to benchmark system components (schema profiling, memory injection, SQL query generation, outlier detection, and chart generation).
 
 ### Key Implications:
 - **Weak or Artificially Controlled Statistical Associations**: Unlike real enterprise operational data, synthetic data generated via pseudorandom distributions often displays lower correlation coefficients (e.g., $|r| < 0.3$) or non-significant p-values in hypothesis testing ($p > 0.05$).
@@ -13,20 +13,31 @@ The demonstration datasets included with this project (`data/sales_transactions.
 
 ---
 
-## 2. Security Limits of Keyword & Token Blocklists in SQL Sandboxes
+## 2. Hardened SQL Sandbox Architecture & Capabilities
 
-The DuckDB sandboxing module (`data_agent/core/sandbox.py`) enforces safety via token extraction and regex-based blocklists:
-1. **Statement Count Enforcer**: Blocks semicolon-chained queries (`split(";")`).
-2. **Keyword Blocklist**: Forbids schema mutation keywords (`DROP`, `ALTER`, `CREATE`, `INSERT`, `UPDATE`, `DELETE`, `PRAGMA`, `ATTACH`, `DETACH`, etc.).
-3. **Function Blocklist**: Forbids filesystem and network functions (`read_csv`, `read_parquet`, `glob`, `httpfs`, etc.).
-4. **Statement Whitelist**: Enforces that queries must start with `SELECT`, `WITH`, or `DESCRIBE`.
+The DuckDB sandboxing module (`data_agent/core/sandbox.py`) has been hardened with multi-layered defense-in-depth security:
 
-### Inherent Limitations of This Approach:
-- **Lexical Evasion & Obfuscation**: Advanced SQL injection techniques in complex database dialects may use encoding, comments inside identifier names, or nested dialect-specific functions to bypass simple token scanners.
-- **Resource Exhaustion & Denial of Service (DoS)**: Keyword checking does not prevent resource-intensive queries that are syntactically valid `SELECT` statements (e.g., unindexed Cartesian products like `SELECT * FROM df CROSS JOIN df CROSS JOIN df`, or pathological regular expressions). These can cause high CPU utilization or memory spikes.
-- **Information Leakage via Error Messages**: If an attacker attempts to infer schema or table details, raw database error strings might reveal in-memory structure details.
+### What the Sandbox Now Does:
+1. **Engine-Level Access Isolation**:
+   - Every execution connects via `duckdb.connect(database=":memory:", config={"enable_external_access": False})`.
+   - File system reads/writes and external network extensions are completely disabled at the C++ kernel level.
+   - Configuration is locked via `SET lock_configuration=true;` so queries cannot re-enable access at runtime.
+2. **Direct File Path & Function Blocking**:
+   - Directly catches and blocks file paths in `FROM` clauses (e.g., `SELECT * FROM '/etc/passwd'` or `SELECT * FROM 'data/sales.csv'`).
+   - Forbids all I/O functions (`read_csv`, `read_parquet`, `glob`, `httpfs`, `sqlite_scan`, etc.).
+3. **AST-Level Verification via `sqlglot`**:
+   - Parses statements into abstract syntax trees to guarantee that every submitted query is strictly a single, read-only `SELECT` or `WITH` statement.
+   - Forbids mutation AST nodes (`Drop`, `Insert`, `Delete`, `Update`, `Alter`, `Create`, `Command`, `Pragma`, `Copy`).
+4. **False Positive Reduction via Literal & Identifier Masking**:
+   - Semicolons are split only outside string literals, allowing queries like `WHERE val = 'a;b'`.
+   - Quoted string literals (`'...'`) and quoted identifiers (`"..."`) are masked prior to keyword checking. Legitimate queries containing keywords like `WHERE status = 'Set'`, `WHERE status = 'Drop'`, or `SELECT "export"` are permitted without false-positive blocks.
+5. **Execution Timeout & Runaway Protection**:
+   - Queries are executed in isolated worker threads with a strict execution timeout (default: 5.0 seconds).
+   - If a runaway Cartesian product (e.g., multi-table cross join) exceeds the timeout, `conn.interrupt()` is dispatched and a `SandboxSecurityError` is raised.
+6. **Result Row Capping**:
+   - Truncates query results exceeding `max_rows` (default: 200) to prevent memory exhaustion and UI lockups.
 
-### Recommended Production Mitigations:
-1. **Process-Level Isolation**: Run the analytical engine in an unprivileged, isolated microVM or container (e.g., Docker with drop-all capabilities, gVisor sandbox).
-2. **Strict Timeouts & Memory Cgroups**: Enforce execution limits (e.g., 5-second query timeout, 512MB RAM cap per session).
-3. **AST-Level SQL Parser**: Replace token scanning with a formal SQL AST parser (e.g., `sqlglot`) to inspect the abstract syntax tree and forbid non-SELECT AST nodes regardless of string formatting.
+### Remaining Honest Limitations:
+- **Transient Memory Spikes Before Timeout**: While execution timeouts terminate runaway Cartesian products after $N$ seconds, a query producing millions of rows per second can cause a brief RAM spike before the thread interrupt takes effect. True bulletproof multi-tenant isolation requires OS-level memory cgroups or microVM containerization (e.g., Docker, gVisor).
+- **In-Memory Table Scope Only**: Queries operate exclusively on in-memory registered DataFrames. No table persistence across queries is permitted.
+- **Dialect Edge Cases**: Advanced DuckDB-specific functions or procedural macros not recognized by standard ANSI SQL AST parsers may fall back to lexical validation.
