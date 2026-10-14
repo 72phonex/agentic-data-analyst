@@ -40,13 +40,17 @@ def run_cli():
     parser.add_argument("--backend", "-b", type=str, default="heuristic", choices=["heuristic", "gemini", "ollama"], help="LLM backend")
     args = parser.parse_args()
 
-    print("=" * 70)
-    print("🤖 TABULAR DATA ANALYSIS AGENT (CLI Mode)")
-    print(f"Backend: {args.backend.upper()} | Memory DB: {args.memory_db}")
-    print("=" * 70)
-
     mem_store = MemoryStore(db_path=args.memory_db)
     llm = LLMClient(backend=args.backend)
+    backend_info = llm.get_backend_info()
+
+    print("=" * 70)
+    print("🤖 TABULAR DATA ANALYSIS AGENT (CLI Mode)")
+    print(f"Backend: {backend_info['description']} | Memory DB: {args.memory_db}")
+    if backend_info["is_heuristic"]:
+        print("⚠️  WARNING: Running in heuristic mode. Only simple canned questions will work. To use the full agent, set GEMINI_API_KEY or start Ollama.")
+    print("=" * 70)
+
     agent = DataAnalysisAgent(memory_store=mem_store, llm_client=llm)
 
     # Load dataset
@@ -84,6 +88,10 @@ def run_cli():
                 print(f"⚙️  ARGUMENTS: {json.dumps(response.get('tool_arguments', {}), default=str)}")
                 print("📊 INTERMEDIATE COMPUTATION RESULT:")
                 print(format_json_preview(response.get("intermediate_result", {})))
+                if response.get("tool_trace") and len(response["tool_trace"]) > 1:
+                    print(f"⛓️  MULTI-STEP TOOL TRACE ({len(response['tool_trace'])} steps executed):")
+                    for stp in response["tool_trace"]:
+                        print(f"   Step {stp['step']}: {stp['tool']} -> {json.dumps(stp['arguments'])}")
                 print("─" * 60)
 
             print(f"\nAgent ❯ {response['answer']}\n")
@@ -96,4 +104,4 @@ def run_cli():
 
 
 if __name__ == "__main__":
-    run_cli()
+    run_cli()

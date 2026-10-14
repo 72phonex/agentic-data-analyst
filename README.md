@@ -8,11 +8,10 @@ An autonomous, general-purpose tabular data analysis system supporting CSV and E
 
 The agent supports three LLM execution modes, configurable via the `LLM_BACKEND` environment variable.
 
-### Default: Heuristic Planner (Zero API Keys Required)
+### Default: Heuristic Fallback (Testing / Offline / CI Only)
 By default, `LLM_BACKEND` is set to `"heuristic"`.
-- **Requires no external API keys** and runs completely offline with zero operational cost.
-- Uses deterministic regex-based intent classification and SQL synthesis to select appropriate tools and parameterize queries.
-- Guarantees 100% reproducible execution and tool calling without API rate limits or network dependencies.
+- **Honest Note**: The heuristic mode is a rule-based deterministic fallback for testing, CI, and offline evaluation without API keys. It is **not an LLM**; it uses regex pattern matching and query templates, and only handles simple, canned question forms.
+- To use the full general-purpose agentic capabilities with dynamic reasoning and multi-step tool chaining on unseen questions, configure a real LLM backend below (Gemini or Ollama).
 
 ### Optional Alternative Backends
 1. **Google Gemini API**:

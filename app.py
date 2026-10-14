@@ -1,22 +1,18 @@
+#!/usr/bin/env python3
 """
-Streamlit Web UI for Tabular Data Analysis Agent.
-Features:
-  - Universal CSV/Excel uploader
-  - Interactive multi-turn chat
-  - Transparent tool trace & intermediate computational outputs
-  - Inline chart display
-  - Persistent Memory Inspector & Management sidebar
+Interactive Web Application for the General-Purpose Tabular Data Analysis Agent.
+Built with Streamlit.
 """
 
 from __future__ import annotations
-import os
 import sys
+import os
 import json
 from pathlib import Path
-import streamlit as st
 import pandas as pd
+import streamlit as st
 
-# Add repo root to path
+# Add project root to path
 repo_root = str(Path(__file__).resolve().parent)
 if repo_root not in sys.path:
     sys.path.insert(0, repo_root)
@@ -107,6 +103,11 @@ with st.sidebar:
         st.session_state.agent.llm = LLMClient(backend=backend_opt)
         st.info(f"Switched backend to: {backend_opt.upper()}")
 
+    backend_info = st.session_state.agent.llm.get_backend_info()
+    st.caption(f"**Status**: {backend_info['description']}")
+    if backend_info["is_heuristic"]:
+        st.warning("⚠️ Running in heuristic mode. Only simple canned questions will work. To use the full agent, set GEMINI_API_KEY or start Ollama.")
+
     st.markdown("---")
 
     # 3. Persistent Memory Inspector
@@ -148,6 +149,11 @@ with st.sidebar:
 # ==============================================================================
 
 st.title("🤖 Tabular Data Analysis Agent")
+backend_info = st.session_state.agent.llm.get_backend_info()
+st.caption(f"Active Backend: **{backend_info['description']}**")
+if backend_info["is_heuristic"]:
+    st.warning("⚠️ **Heuristic Fallback Mode Active**: Running in rule-based fallback mode. To enable general-purpose semantic query reasoning and tool chaining, configure `GEMINI_API_KEY` or start local Ollama.")
+
 st.markdown("Ask natural-language questions about your data. The agent computes answers using deterministic tools and recalls your saved definitions.")
 
 # Display Chat History
@@ -218,4 +224,4 @@ if prompt:
         "memories_used": res.get("memories_used"),
         "chart_path": chart_path,
         "chart_title": chart_title
-    })
+    })

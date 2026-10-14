@@ -1,7 +1,7 @@
 """
 Configurable LLM provider for Tabular Data Analysis Agent.
 Supports:
-  - Gemini API (google-generativeai) via GEMINI_API_KEY or GOOGLE_API_KEY
+  - Gemini API (google-genai / google-generativeai) via GEMINI_API_KEY or GOOGLE_API_KEY
   - Ollama local model via OLLAMA_HOST and OLLAMA_MODEL (e.g. llama3.1, qwen2.5)
   - Heuristic deterministic planner (for zero-dependency testing, CI, and offline demos)
 """
@@ -21,6 +21,14 @@ You MUST call tools to compute answers. NEVER guess, invent, or hallucinate nume
 Always inspect tool outputs before producing your final synthesis.
 If a tool returns an error, examine the error message and retry with a corrected parameter or query.
 When user domain definitions or memories are present, incorporate them strictly into your SQL queries and filters.
+"""
+
+SYNTHESIS_SYSTEM_INSTRUCTIONS = """You are an expert Data Analysis Agent synthesizing computed tool outputs.
+CRITICAL NUMERICAL FIDELITY REQUIREMENT:
+You MUST base your response STRICTLY on the tool outputs and numbers provided in the tool execution trace.
+Use the EXACT numbers, metrics, column names, and calculated values from the tool results.
+Do NOT invent, hallucinate, extrapolate, or alter any numbers.
+If the tool result contains an error or 0 matching rows, state that fact clearly.
 """
 
 
@@ -55,55 +63,83 @@ class LLMClient:
             self.ollama_host = os.getenv("OLLAMA_HOST", "http://localhost:11434")
             self.model_name = self.model_name or "llama3.1"
 
+    def get_backend_info(self) -> Dict[str, Any]:
+        """Return honest metadata describing active backend, model, and capabilities."""
+        if self.backend == "gemini":
+            return {
+                "backend": "gemini",
+                "model": self.model_name,
+                "description": f"Gemini (model: {self.model_name})",
+                "is_heuristic": False
+            }
+        elif self.backend == "ollama":
+            return {
+                "backend": "ollama",
+                "model": self.model_name,
+                "description": f"Ollama (model: {self.model_name})",
+                "is_heuristic": False
+            }
+        else:
+            return {
+                "backend": "heuristic",
+                "model": "none",
+                "description": "Heuristic fallback (no LLM configured; limited query matching)",
+                "is_heuristic": True
+            }
+
     def plan_tool_call(
         self,
         user_prompt: str,
         df_columns: List[str],
         memories_text: str = "",
         conversation_history: Optional[List[Dict[str, str]]] = None,
-        previous_tool_error: Optional[str] = None
+        previous_tool_error: Optional[str] = None,
+        tool_trace: Optional[List[Dict[str, Any]]] = None
     ) -> Optional[Dict[str, Any]]:
         """
         Determine which tool to call and with what arguments based on the user's question,
-        schema, relevant memories, and any previous error.
+        schema, relevant memories, previous tool error, and prior tool execution trace.
         """
         if self.backend == "gemini":
-            return self._plan_with_gemini(user_prompt, df_columns, memories_text, previous_tool_error)
+            return self._plan_with_gemini(user_prompt, df_columns, memories_text, previous_tool_error, tool_trace)
         elif self.backend == "ollama":
-            return self._plan_with_ollama(user_prompt, df_columns, memories_text, previous_tool_error)
+            return self._plan_with_ollama(user_prompt, df_columns, memories_text, previous_tool_error, tool_trace)
         else:
-            return self._plan_with_heuristic(user_prompt, df_columns, memories_text, previous_tool_error)
+            return self._plan_with_heuristic(user_prompt, df_columns, memories_text, previous_tool_error, tool_trace)
 
     def synthesize_response(
         self,
         user_prompt: str,
         tool_name: str,
         tool_result: Dict[str, Any],
-        memories_text: str = ""
+        memories_text: str = "",
+        tool_trace: Optional[List[Dict[str, Any]]] = None
     ) -> str:
         """
-        Generate plain-English answer synthesizing the computed tool outputs.
+        Generate plain-English answer synthesizing computed tool outputs with strict numerical fidelity.
         """
+        trace_summary = json.dumps(tool_trace, default=str) if tool_trace else json.dumps(tool_result, default=str)
+
         if self.backend == "gemini":
             try:
                 prompt = (
-                    f"{SYSTEM_INSTRUCTIONS}\n\n"
+                    f"{SYNTHESIS_SYSTEM_INSTRUCTIONS}\n\n"
                     f"{memories_text}\n\n"
                     f"User Question: {user_prompt}\n"
-                    f"Tool Used: {tool_name}\n"
-                    f"Tool Computed Output: {json.dumps(tool_result, default=str)}\n\n"
-                    f"Provide a clear, direct, and insightful response answering the user's question based strictly on the tool data."
+                    f"Primary Tool Used: {tool_name}\n"
+                    f"Execution Trace & Computed Outputs:\n{trace_summary}\n\n"
+                    f"Strict Requirement: Answer the question using the EXACT numbers above. Do not invent any numbers."
                 )
                 if self.genai_client is not None:
                     res = self.genai_client.models.generate_content(
                         model=self.model_name,
                         contents=prompt,
-                        config={"system_instruction": SYSTEM_INSTRUCTIONS}
+                        config={"system_instruction": SYNTHESIS_SYSTEM_INSTRUCTIONS}
                     )
                     if res and res.text:
                         return res.text.strip()
                 elif self.legacy_genai is not None:
-                    model = self.legacy_genai.GenerativeModel(self.model_name)
+                    model = self.legacy_genai.GenerativeModel(self.model_name, system_instruction=SYNTHESIS_SYSTEM_INSTRUCTIONS)
                     res = model.generate_content(prompt)
                     if res and res.text:
                         return res.text.strip()
@@ -117,8 +153,8 @@ class LLMClient:
                     json={
                         "model": self.model_name,
                         "messages": [
-                            {"role": "system", "content": SYSTEM_INSTRUCTIONS},
-                            {"role": "user", "content": f"{memories_text}\n\nQuestion: {user_prompt}\nTool {tool_name} returned:\n{json.dumps(tool_result, default=str)}"}
+                            {"role": "system", "content": SYNTHESIS_SYSTEM_INSTRUCTIONS},
+                            {"role": "user", "content": f"{memories_text}\n\nQuestion: {user_prompt}\nTool Output:\n{trace_summary}\nUse exact numbers only."}
                         ],
                         "stream": False
                     },
@@ -130,7 +166,7 @@ class LLMClient:
                 pass
 
         # Deterministic heuristic synthesis fallback
-        return self._heuristic_synthesis(user_prompt, tool_name, tool_result)
+        return self._heuristic_synthesis(user_prompt, tool_name, tool_result, tool_trace)
 
     # --------------------------------------------------------------------------
     # HEURISTIC / DETERMINISTIC PLANNER
@@ -141,12 +177,17 @@ class LLMClient:
         user_prompt: str,
         df_columns: List[str],
         memories_text: str = "",
-        previous_tool_error: Optional[str] = None
+        previous_tool_error: Optional[str] = None,
+        tool_trace: Optional[List[Dict[str, Any]]] = None
     ) -> Optional[Dict[str, Any]]:
         """
         High-accuracy rule-based planner mapping user intentions to tool calls.
         Also parses memory conditions and fixes errors on retry.
         """
+        # If a tool has already successfully executed in heuristic mode, terminate loop
+        if tool_trace and len(tool_trace) >= 1:
+            return None
+
         p = user_prompt.lower()
 
         # Handle retry if previous query failed with a syntax or column error
@@ -235,7 +276,6 @@ class LLMClient:
         # Extract condition from memory dynamically if relevant to user prompt
         where_clause = ""
         if memories_text:
-            import re
             for line in memories_text.strip().split("\n"):
                 line = line.strip()
                 if not line or not line.startswith("-"):
@@ -262,17 +302,15 @@ class LLMClient:
 
         # Helper to find column mentioned in prompt
         def find_mentioned_or_fallback(candidates, default_index=-1):
-            # 1. Exact or partial column name mentioned in prompt
             for col in columns:
                 if col.lower() in p or col.lower().replace("_", " ") in p:
-                    return col
-            # 2. Check candidate keywords
+                    return f'"{col}"' if " " in col else col
             for cand in candidates:
                 for col in columns:
                     if cand in col.lower():
-                        return col
-            # 3. Default to column by index
-            return columns[default_index] if columns else "id"
+                        return f'"{col}"' if " " in col else col
+            fallback = columns[default_index] if columns else "id"
+            return f'"{fallback}"' if " " in fallback else fallback
 
         # Count queries
         if any(w in p for w in ["how many", "count", "number of rows"]):
@@ -302,7 +340,13 @@ class LLMClient:
         # Fallback query
         return f"SELECT * FROM df {where_clause} LIMIT 25".strip()
 
-    def _heuristic_synthesis(self, prompt: str, tool_name: str, result: Dict[str, Any]) -> str:
+    def _heuristic_synthesis(
+        self,
+        prompt: str,
+        tool_name: str,
+        result: Dict[str, Any],
+        tool_trace: Optional[List[Dict[str, Any]]] = None
+    ) -> str:
         """Deterministic formatter converting tool dictionaries into clear user answers."""
         if result.get("status") == "error":
             return f"Tool execution failed: {result.get('message', 'Unknown error')}."
@@ -371,11 +415,21 @@ class LLMClient:
     # GEMINI / OLLAMA IMPLEMENTATION HOOKS
     # --------------------------------------------------------------------------
 
-    def _plan_with_gemini(self, prompt: str, cols: List[str], mem: str, err: Optional[str]) -> Dict[str, Any]:
+    def _plan_with_gemini(
+        self,
+        prompt: str,
+        cols: List[str],
+        mem: str,
+        err: Optional[str],
+        tool_trace: Optional[List[Dict[str, Any]]] = None
+    ) -> Dict[str, Any]:
         try:
             sys_instruct = f"{SYSTEM_INSTRUCTIONS}\nAvailable Columns: {cols}\n{mem}\nTool Schemas:\n{json.dumps(TOOL_SCHEMAS)}"
             chat_prompt = f"Question: {prompt}\n" + (f"Previous Error: {err}\n" if err else "")
-            chat_prompt += "Respond strictly with a JSON object: {\"name\": \"<tool_name>\", \"arguments\": {<args>}}"
+            if tool_trace:
+                chat_prompt += f"\nExecuted Tools Trace in this Multi-Step Execution:\n{json.dumps(tool_trace, default=str)}\n"
+                chat_prompt += 'If sufficient information has been collected to answer the question, respond with: {"name": "synthesize", "arguments": {}}\n'
+            chat_prompt += 'Otherwise, respond strictly with a JSON object: {"name": "<tool_name>", "arguments": {<args>}}'
             text = ""
             if self.genai_client is not None:
                 res = self.genai_client.models.generate_content(
@@ -395,18 +449,28 @@ class LLMClient:
                     return json.loads(match.group(0))
         except Exception:
             pass
-        return self._plan_with_heuristic(prompt, cols, mem, err)
+        return self._plan_with_heuristic(prompt, cols, mem, err, tool_trace)
 
-    def _plan_with_ollama(self, prompt: str, cols: List[str], mem: str, err: Optional[str]) -> Dict[str, Any]:
+    def _plan_with_ollama(
+        self,
+        prompt: str,
+        cols: List[str],
+        mem: str,
+        err: Optional[str],
+        tool_trace: Optional[List[Dict[str, Any]]] = None
+    ) -> Dict[str, Any]:
         try:
             sys_msg = f"{SYSTEM_INSTRUCTIONS}\nColumns: {cols}\n{mem}\nRespond ONLY with JSON: {{\"name\": \"...\", \"arguments\": {{...}}}}"
+            user_msg = f"User: {prompt}\nError: {err or ''}"
+            if tool_trace:
+                user_msg += f'\nPrior Tool Trace:\n{json.dumps(tool_trace, default=str)}\nIf done, reply with {{"name": "synthesize", "arguments": {{}}}}'
             res = requests.post(
                 f"{self.ollama_host}/api/chat",
                 json={
                     "model": self.model_name,
                     "messages": [
                         {"role": "system", "content": sys_msg},
-                        {"role": "user", "content": f"User: {prompt}\nError: {err or ''}"}
+                        {"role": "user", "content": user_msg}
                     ],
                     "format": "json",
                     "stream": False
@@ -418,4 +482,4 @@ class LLMClient:
                 return json.loads(body)
         except Exception:
             pass
-        return self._plan_with_heuristic(prompt, cols, mem, err)
+        return self._plan_with_heuristic(prompt, cols, mem, err, tool_trace)

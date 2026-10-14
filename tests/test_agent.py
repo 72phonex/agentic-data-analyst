@@ -70,3 +70,64 @@ def test_agent_error_retry(agent):
     res = agent.ask("Show me correlation")
     assert res["tool_used"] == "correlation_analysis"
     assert res["intermediate_result"]["status"] == "success"
+
+def test_multistep_tool_chaining_and_numerical_fidelity(tmp_path):
+    df = pd.DataFrame({
+        "product_id": [101, 102, 103],
+        "category": ["A", "B", "A"],
+        "price": [150.0, 300.0, 200.0]
+    })
+    mem = MemoryStore(db_path=str(tmp_path / "mem.sqlite"))
+    mock_llm = LLMClient(backend="heuristic")
+
+    # Step 1: query for max price
+    # Step 2: query for product with that price
+    # Step 3: finish / synthesize
+    def mock_plan(user_prompt, df_columns, memories_text="", previous_tool_error=None, tool_trace=None):
+        if not tool_trace or len(tool_trace) == 0:
+            return {"name": "run_query", "arguments": {"query": "SELECT MAX(price) AS max_price FROM df"}}
+        elif len(tool_trace) == 1:
+            max_val = tool_trace[0]["result"]["data"][0]["max_price"]
+            return {"name": "run_query", "arguments": {"query": f"SELECT * FROM df WHERE price = {max_val}"}}
+        else:
+            return {"name": "synthesize", "arguments": {}}
+
+    synthesis_captured = {}
+    def mock_synthesize(user_prompt, tool_name, tool_result, memories_text="", tool_trace=None):
+        synthesis_captured["tool_trace"] = tool_trace
+        synthesis_captured["tool_result"] = tool_result
+        matched_price = tool_result["data"][0]["price"]
+        prod_id = tool_result["data"][0]["product_id"]
+        return f"The highest priced product is #{prod_id} with price {matched_price}."
+
+    mock_llm.plan_tool_call = mock_plan
+    mock_llm.synthesize_response = mock_synthesize
+
+    agent = DataAnalysisAgent(df=df, dataset_name="products.csv", memory_store=mem, llm_client=mock_llm, max_steps=3)
+    response = agent.ask("Find the highest price and which product has it")
+
+    # Verify 2 steps were executed in sequence
+    assert len(response["tool_trace"]) == 2
+    assert response["tool_trace"][0]["tool"] == "run_query"
+    assert response["tool_trace"][0]["result"]["data"][0]["max_price"] == 300.0
+    assert response["tool_trace"][1]["tool"] == "run_query"
+    assert response["tool_trace"][1]["result"]["data"][0]["product_id"] == 102
+
+    # Verify synthesis received trace and final answer includes exact tool number
+    assert len(synthesis_captured["tool_trace"]) == 2
+    assert "300.0" in response["answer"]
+    assert "102" in response["answer"]
+
+def test_backend_info_and_honesty():
+    client_h = LLMClient(backend="heuristic")
+    info_h = client_h.get_backend_info()
+    assert info_h["backend"] == "heuristic"
+    assert info_h["is_heuristic"] is True
+    assert "heuristic fallback" in info_h["description"].lower()
+
+    client_o = LLMClient(backend="ollama")
+    info_o = client_o.get_backend_info()
+    assert info_o["backend"] == "ollama"
+    assert info_o["is_heuristic"] is False
+    assert "ollama" in info_o["description"].lower()
+
