@@ -750,7 +750,8 @@ def trend_forecast(
 
     try:
         temp = df[[date_col, value_col]].dropna().copy()
-        temp[date_col] = pd.to_datetime(temp[date_col])
+        temp[date_col] = pd.to_datetime(temp[date_col], format="mixed", errors="coerce")
+        temp = temp.dropna(subset=[date_col])
         temp = temp.sort_values(by=date_col)
 
         # Resample

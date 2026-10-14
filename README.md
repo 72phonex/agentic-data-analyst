@@ -99,7 +99,7 @@ python scripts/test_unrelated_datasets.py
 
 | Test Suite / Verification Step | Target / Invariant | Real Output / Empirical Result | Status |
 |---|---|---|---|
-| **Pytest Test Suite** | 41 automated unit tests | 41 passed, 0 failed in 5.77s | **PASS** |
+| **Pytest Test Suite** | 46 automated unit tests | 46 passed, 0 failed in 6.52s | **PASS** |
 | **Total Revenue Verification** | Match demo claim | $92,477.23 (sum of `total_amount`) | **PASS** |
 | **Active Customer Revenue** | `status = 'Active'` & `cancelled_flag = 0` | $37,023.46 (across 91 rows) | **PASS** |
 | **DuckDB Security Sandbox** | Block DROP, INSERT, read_csv, PRAGMA, chained ';', Cartesian DoS | 13 of 13 attack vectors blocked, 4/4 legitimate queries allowed | **PASS** |

@@ -1,0 +1,16 @@
+Customer Name,custOMER id,Order Date,Category,Total Sales USD,Satisfaction Score
+"Doe, John",101.0,2024-01-15,Electronics,1250.0,8.5
+"Smith, Jane",102.0,01/16/2024,Apparel,450.5,9.0
+"O'Connor, Tim",,2024-01-17,Electronics,,7.5
+"Lee, Bob",104.0,01/18/2024,Books,89.99,
+"Taylor, Ann",105.0,2024-01-19,,1200.0,6.0
+"Brown, Charlie",106.0,01/20/2024,Apparel,340.0,8.0
+"Davis, Sarah",107.0,2024-01-21,Electronics,2150.0,9.5
+"Miller, Chris",108.0,01/22/2024,Books,45.0,7.0
+"Wilson, Mary",109.0,2024-01-23,Electronics,980.0,8.5
+"Moore, David",110.0,01/24/2024,Apparel,,9.0
+,111.0,2024-01-25,Books,65.0,
+"Jackson, Amy",112.0,01/26/2024,Electronics,1450.0,8.0
+"White, Brian",113.0,2024-01-27,Apparel,520.0,7.5
+"Harris, Kevin",114.0,01/28/2024,Books,110.0,8.5
+"Clark, Laura",115.0,2024-01-29,Electronics,1890.0,9.0
