@@ -14,15 +14,18 @@ charts/
 *.png
 *.html
 
+# Local memory
+memory.json
+
 # Local SQLite databases
 *.db
+*.sqlite
 *.sqlite3
+*.sqlite-journal
+data_agent_memory.sqlite
 
 # Secrets & Environment
 .env
 .env.*
 *.key
 *.pem
-*.sqlite
-*.sqlite-journal
-data_agent_memory.sqlite
