@@ -20,6 +20,6 @@ if %ERRORLEVEL% NEQ 0 (
 
 :: Run the Streamlit web application
 echo [INFO] Launching Streamlit web app...
-streamlit run app.py
+python -m streamlit run app.py
 
 pause

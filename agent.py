@@ -34,7 +34,10 @@ def ask_agent(df: pd.DataFrame, question: str, chat_history: list = None, memori
             raw_args = tc.get("function", {}).get("arguments", {})
             args = json.loads(raw_args) if isinstance(raw_args, str) else (raw_args or {})
             tool_func = TOOL_MAP.get(name)
-            result = tool_func(df, **args) if tool_func else {"error": f"Unknown tool '{name}'"}
+            try:
+                result = tool_func(df, **args) if tool_func else {"error": f"Unknown tool '{name}'"}
+            except Exception as e:
+                result = {"error": f"Tool execution failed: {str(e)}"}
             traces.append({"tool": name, "args": args, "result": result})
             if isinstance(result, dict) and result.get("chart_path"):
                 chart_path = result["chart_path"]
